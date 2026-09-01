@@ -1,0 +1,5 @@
+# Shell hooks and guard scripts must stay LF — CRLF line endings break sh/bash.
+.claude/hooks/ text eol=lf
+.githooks/ text eol=lf
+*.sh text eol=lf
+*.cmd text eol=lf

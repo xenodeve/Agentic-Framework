@@ -16,6 +16,7 @@ bun run build  # production build
 bun start      # serve the production build
 bun run lint   # eslint
 bun run typecheck  # tsc --noEmit
+bun run verify # lint + typecheck + build — the fast ship-gate command
 ```
 
 ## Layout
@@ -23,8 +24,11 @@ bun run typecheck  # tsc --noEmit
 - `content/` — site content, Markdown with frontmatter
   - `content/ecosystem/*.md` — one file per project, slug = filename
   - `content/blog/*.md` — posts, sorted by `date`
-- `docs/` — T4 operating layer (`agents/`, `adr/`, `OPEN-WORK-LEDGER.md`, `DONE.md`)
+- `docs/` — T4 operating layer (`agents/`, `adr/`, `superpowers/` specs) + content sources (analyses, briefs, origin stories)
+- `Obsidian-Agentic-Framework/` — team memory vault (`Home.md` index)
+- `DONE.md` — ship log · `docs/OPEN-WORK-LEDGER.md` — open work, tracked and untracked
 - `src/` — Next.js app (`app/` routes, `components/`, `lib/`)
+- `.claude/` — T4 hooks + `t4.json` · `.githooks/` — push guards · `.github/workflows/` — CI
 
 ## Content conventions
 

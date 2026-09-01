@@ -1,0 +1,91 @@
+# T4 verify — the server-side ship gate, and the enforcement local hooks can't
+# be. Local hooks only catch agent-run commands; this also covers a human
+# merging on the web and can't be `--no-hooks`'d away.
+#
+# Jobs: `lint`, `typecheck`, `build` + `guards` (the .githooks/ scripts).
+# No `test` job yet — the repo has no unit test runner; add the job (and the
+# e2e workflow) when one lands. A test job running a script that doesn't exist
+# is a red check that teaches everyone to ignore red.
+#
+# Keep the fast subset in sync with `.claude/t4.json` "verify" — the local gate
+# should fail for the same reasons this does, just sooner.
+name: T4 verify
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push supersedes the previous run on the same ref; nothing is gained by
+# finishing a gate for a commit that has already been replaced.
+concurrency:
+  group: t4-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: the gate only reads the code. Never grant write here — a
+# workflow that can push is a workflow that can bypass the gate it enforces.
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      # Hand the built output to e2e / deploy instead of rebuilding it there.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: .next/
+          retention-days: 7
+          if-no-files-found: error
+
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # the no-base fallback reads full history
+      - name: tree budget
+        run: sh .githooks/check-tree-budget
+      - name: gate ledger
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: sh .githooks/check-gate-ledger
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+      - name: issue ref
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: PR_BODY="$(gh pr view "${{ github.event.number }}" --json body -q .body || true)" sh .githooks/check-issue-ref
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
+      # A Dependabot PR has no issue and that's fine — it is created server-side
+      # and never passes through the agent's gate. Exempt by nature, not by
+      # argument; the tree budget still ran above.
+      - name: bot PR exemption
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        run: echo "::notice::dependabot PR — the issue-ref and gate-ledger guards don't apply to bot PRs; the tree budget still ran."
+
+# No job sets a `name:`, so each job KEY is its required-check context (`lint`,
+# `typecheck`, `build`, `guards`). Add a `name:` and you must update the ruleset
+# to match, or it will wait on a check that never reports.

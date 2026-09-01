@@ -126,7 +126,41 @@ xeno-skills): text-first, neutral base + accent เดียว, ไม่ใช
 - ปรับเนื้อหา `content/ecosystem/openclink.md`, `content/ecosystem/clone-space.md` ให้ลึก
   ตาม `docs/openclink-present-blog-brief.md`, `docs/clone-space-present-blog-brief.md`
 
-## 9. นอกขอบเขตของ spec นี้ (ตัดสินใจตอนทำ implementation plan)
+## 9. รอบ review ที่สอง (external AI review, verified ก่อนรับเข้า)
+
+ตรวจ claim เฉพาะเจาะจงกับ repo จริงก่อนรับเข้า spec (ห้ามเชื่อ AI ตัวอื่นตรง ๆ โดยไม่ verify):
+
+- จำนวน skill 19 ตัว **ยืนยันถูกต้องแล้ว** (นับจาก `SKILL.md` จริงใน `xeno-skills/skills/`)
+- `using-clink` มี pal/openclink registration-key drift จริง (`#204`, บรรทัด 38-41 ของ
+  `skills/multi-agent/using-clink/SKILL.md`) — ใช้เป็น evidence เรื่อง honest-about-limits ได้
+- ตัวเลข capture ของ Clone Space (82,613 ตัวอักษร GLSL, 9 canvas context, 1,510
+  event-listener registration บน chaingpt.org) ตรงกับที่มีอยู่แล้วใน
+  `docs/clone-space-analysis.md`
+- **Clone Space ยังไม่ได้ wire เข้า `design-setup` จริง** — grep แล้วมีแค่ Dribbble/
+  Pinterest/21st.dev เป็นแหล่ง inspiration, ที่เดียวที่ Clone Space โผล่ในทั้ง xeno-skills
+  repo คือ `clink-subagents` อ้าง PR ของ `clone-space-mcp` เป็นเคสสอนเรื่อง mutation
+  testing เท่านั้น ไม่เกี่ยวกับ design workflow — **ตัดสินใจแล้ว: เขียนเนื้อหาบนเว็บตามที่
+  วางไว้ปกติ (Clone Space เป็น reference source ให้ design family) แต่ต้องติด status tag
+  `(developing)` ชัดเจนตรงจุดนั้น** ไม่ implement การเชื่อมจริงใน xeno-skills repo ตอนนี้
+  (เป็นคนละ repo, นอกขอบเขตเว็บนี้)
+
+เปลี่ยน/เพิ่มจาก spec เดิมตามรอบ review นี้:
+
+1. **Hero** — ห้ามวาง `xeno-skills · openclink · Clone Space` เป็นป้าย 3 ชื่อขนาดเท่ากัน
+   ให้ xeno-skills กิน visual mass ส่วนใหญ่ ส่วน openclink/Clone Space โผล่เป็น
+   "Powered by" ขนาดเล็กกว่าใต้ positioning statement
+2. **Mini architecture diagram** — เพิ่มหลัง Four Outcomes (section 3 เดิม) แบบย่อ
+   (xeno-skills → Delegate → OpenClink, xeno-skills → Design → Clone Space) เพื่อ lock
+   mental model ตั้งแต่ต้น ก่อนจะ scroll ไปเจอ `#built-on` แบบเต็มท้ายหน้า — `#built-on`
+   ยังอยู่ตำแหน่งเดิม ทำหน้าที่ deep explanation
+3. **Skill catalog ห้าม hardcode "19"** — ต้อง generate จาก `SKILL.md` จริงตอน build
+   (parse frontmatter → `skills.generated.json` → join กับ `WebsiteSkillMeta` ที่มีแค่สิ่งที่
+   ไม่อยู่ใน `SKILL.md` เช่น `originStory`, `featured`) กันปัญหา documentation drift
+   ที่เกือบเกิดขึ้นแล้วในรอบ review นี้เอง (ตัวเลขที่ผิดไม่ใช่ของเรา แต่แสดงว่าความเสี่ยงมีจริง)
+4. **`/ecosystem`** — เปลี่ยนจากตัดทิ้งเฉย ๆ เป็น 308 redirect ไป `/#built-on` (กัน 404
+   เพราะเป็น URL ที่คนเดาเองได้ง่าย)
+
+## 10. นอกขอบเขตของ spec นี้ (ตัดสินใจตอนทำ implementation plan)
 
 - รายละเอียด animation/scroll-trigger ของ popup และ diagram
 - mobile-specific behavior ของ popup (full-screen sheet หรือ centered modal)
