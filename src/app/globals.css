@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  /* 60-30-10 · dark elevation — depth from lighter surfaces, not shadows */
+  --bg: #09090b; /* 60% dominant neutral */
+  --surface: #18181b; /* 30% secondary surface */
+  --surface-2: #27272a; /* elevated surface */
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --edge: rgba(255, 255, 255, 0.08);
+  --accent: #a3e635; /* 10% accent */
+  --accent-contrast: #09090b;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--text-muted);
+  --color-edge: var(--edge);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  /* Major Third type scale (1.25x, base 16px) */
+  --text-h1: 3.815rem; /* hero title */
+  --text-h2: 3.052rem; /* page title */
+  --text-h3: 2.441rem; /* major section */
+  --text-h4: 1.953rem; /* section header */
+  --text-h5: 1.5625rem; /* card title */
+  --text-h6: 1.25rem; /* subtext */
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.5; /* body legibility: 150% */
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.025em; /* headline tracking: -2.5% */
+  line-height: 1.12; /* headline leading: ~112% */
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
