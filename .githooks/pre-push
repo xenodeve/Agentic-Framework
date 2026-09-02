@@ -22,8 +22,10 @@ if [ "$status" -ne 0 ]; then
   echo "" >&2
   echo "pre-push blocked by a T4 guard (above)." >&2
   echo "  Fix the cause, or push from a wip/ branch for a deliberate freeze." >&2
-  echo "  Bypassing with --no-verify is possible and discouraged: the same" >&2
-  echo "  checks run in CI, where they cannot be bypassed." >&2
+  echo "  Bypassing with --no-verify is possible and discouraged: the agent-side" >&2
+  echo "  ship gate (.claude/t4.json verify) still runs before agent merges." >&2
+  echo "  NOTE: the CI backstop (t4-verify.yml) is DOWN — the account is billing-" >&2
+  echo "  locked, so no server-side check runs. See docs/OPEN-WORK-LEDGER.md." >&2
 fi
 
 exit "$status"

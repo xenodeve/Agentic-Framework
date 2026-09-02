@@ -20,6 +20,8 @@
 
 | Item | Status | Gate | Next action |
 |---|---|---|---|
+| **CI down — account billing-locked** (`t4-verify.yml` runs come back `startup_failure`, 0s, no log) | 🟡 | developer restores account billing | every run is `startup_failure` · compensations in force: `requireGreenCI: false` in `.claude/t4.json` (true would deny every merge forever), `pre-push` message corrected (no CI backstop behind it), a merged PR means **"the author ran `bun run verify`"** not "CI passed" · when billing is restored: re-trigger `t4-verify.yml`, create the ruleset (required checks `lint`/`typecheck`/`build`/`guards`, block direct pushes to `main`, require PR), flip `requireGreenCI: true` · **a human merging on the web is not bound by any of this — say so, don't pretend** |
+| **Server-side protection unavailable on this account** (rulesets AND classic branch protection both 403 "Upgrade to GitHub Pro"; `security-and-analysis` endpoint 404; what landed: `automated-security-fixes` enabled, `vulnerability-alerts` PUT accepted but state not GET-able, secret scanning **not configured — endpoint absent**) | 🟡 | account upgrade to Pro (or make the repo public) | the ceiling: with no ruleset and no branch protection, **nothing server-side binds a human on this account** — the local tiers (hooks, guards, `verify` gate) are the entire gate · tracked with #2 (CI restoration) |
 | motion pass (staggered reveals, `prefers-reduced-motion`) + dev Tweaks Bar | 🔴 | design-setup phases 3/7 skipped in scaffold | decide when content is real |
 | e2e runner (playwright) + `t4-e2e.yml` | 🔴 | no test runner yet | `t4-verify.yml` ships without a `test` job until one exists |
 

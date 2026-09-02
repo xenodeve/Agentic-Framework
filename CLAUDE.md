@@ -48,6 +48,15 @@ Tools are **not on PATH** — use the absolute paths:
 - `bun` → `~/.bun/bin/bun.exe` (bun 1.3.14)
 - `gh` → `C:\Program Files\GitHub CLI\gh.exe` (authenticated as `xenodeve`)
 
+### CI status (2026-09-02): down — account billing-locked
+
+`bun run verify` is the **only** gate that actually runs; `t4-verify.yml` exists and is correct but every run comes back `startup_failure` (0s, no log) because the account is billing-locked. Consequences, recorded so a later agent does not re-derive them:
+
+- **A merged PR here means "the author ran `bun run verify`", not "CI passed"** — nothing about the merge distinguishes the two.
+- `.claude/t4.json` has `requireGreenCI: false` on purpose — with CI absent, `gh pr checks` is non-zero and `true` would deny every merge forever.
+- `pre-push` says what is really behind it now (no CI backstop). A human pushing `--no-verify` from another clone, or merging on the web, is bound by **nothing** — that gap is exactly what required checks will close once billing is restored.
+- Restoration is tracked in the open-work ledger; when billing is back: re-trigger `t4-verify.yml`, create the ruleset, flip `requireGreenCI: true`.
+
 ## Memory & records
 
 - Open work: `docs/OPEN-WORK-LEDGER.md` (read at session start; update on finish / discover).

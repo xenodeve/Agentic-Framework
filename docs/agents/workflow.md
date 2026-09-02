@@ -10,7 +10,7 @@ How agents plan and implement in this repo, and which skills fire automatically.
 2. `/grill-with-docs` — challenge the plan against `docs/adr/`; lazily produces domain docs when a term or decision actually resolves.
 3. **Survey the change sites** — enumerate every place the change touches before writing the plan.
 4. `/to-prd` — turn the grilled plan into a PRD (one PRD per epic), carrying the survey as its change inventory.
-5. `/to-issues` — break the PRD into GitHub issues on `xenodeve/Agentic Framework` with triage labels (one issue per deliverable).
+5. `/to-issues` — break the PRD into GitHub issues on `xenodeve/Agentic-Framework` (GitHub normalised the space in the name to a hyphen) with triage labels (one issue per deliverable).
 6. `/tdd` — implement test-first (red → green → refactor).
 
 `/grill-me`, `/grill-with-docs`, `/to-prd`, `/to-issues` are **user-invocation-only** (`disable-model-invocation`) — an agent cannot call them through the Skill tool. Absence from the available-skills listing is **not** evidence they are missing: ask the developer to run them, naming the exact command, and do not improvise their output. If the developer declines, that is a park, recorded with what is undone.
@@ -44,7 +44,7 @@ Every frontend change is verified end-to-end — unit tests can't see real layou
 2. `/grill-with-docs` — ท้าแผนต่อ ADR ใน `docs/adr/` · สร้าง domain docs แบบ lazy เมื่อคำหรือ decision ชัดจริง
 3. **สำรวจ change sites** — enumerate ทุกจุดที่ change สัมผัส ก่อนเขียนแผน
 4. `/to-prd` — เปลี่ยนแผนเป็น PRD (หนึ่ง PRD ต่อหนึ่ง epic) พร้อม change inventory จากขั้นสำรวจ
-5. `/to-issues` — แยก PRD เป็น GitHub issues บน `xenodeve/Agentic Framework` พร้อม triage labels (หนึ่ง issue ต่อหนึ่ง deliverable)
+5. `/to-issues` — แยก PRD เป็น GitHub issues บน `xenodeve/Agentic-Framework` (GitHub normalize ชื่อจาก space เป็น hyphen) พร้อม triage labels (หนึ่ง issue ต่อหนึ่ง deliverable)
 6. `/tdd` — implement test-first (red → green → refactor)
 
 `/grill-me`, `/grill-with-docs`, `/to-prd`, `/to-issues` เป็น **user-invocation-only** (`disable-model-invocation`) — agent เรียกผ่าน Skill tool ไม่ได้ การที่มันไม่อยู่ใน available-skills **ไม่ใช่** หลักฐานว่าไม่มี: ให้ dev รันแล้วบอกคำสั่งที่ตรง · อย่า improvise ผลของมัน ถ้า dev ปฏิเสธ ให้ park และบันทึกสิ่งที่ยังค้าง

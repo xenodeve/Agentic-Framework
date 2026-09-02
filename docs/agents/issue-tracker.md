@@ -2,7 +2,7 @@
 
 <!-- lang:en -->
 
-Issues and PRDs for this repo live as **GitHub issues** on `xenodeve/Agentic Framework`. Use the `gh` CLI for all operations.
+Issues and PRDs for this repo live as **GitHub issues** on `xenodeve/Agentic-Framework` (GitHub normalised the space in the name to a hyphen). Use the `gh` CLI for all operations.
 
 > **Tooling:** `gh` is not on PATH — invoke `C:\Program Files\GitHub CLI\gh.exe` (authenticated as `xenodeve`, `repo` + `workflow` scopes). `bun` is at `~/.bun/bin/bun.exe`.
 
@@ -31,7 +31,7 @@ Every issue, PRD, and PR body is **bilingual — English first, then a full Thai
 
 <!-- lang:th -->
 
-Issues และ PRDs ของ repo นี้เป็น **GitHub issues** บน `xenodeve/Agentic Framework` · ใช้ `gh` CLI ทุก operation
+Issues และ PRDs ของ repo นี้เป็น **GitHub issues** บน `xenodeve/Agentic-Framework` (GitHub normalize ชื่อจาก space เป็น hyphen) · ใช้ `gh` CLI ทุก operation
 
 > **Tooling:** `gh` ไม่อยู่บน PATH — เรียก `C:\Program Files\GitHub CLI\gh.exe` (auth เป็น `xenodeve`, scope `repo` + `workflow`) · `bun` อยู่ที่ `~/.bun/bin/bun.exe`
 
