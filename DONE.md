@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09-02 — repo live on GitHub + CI billing-lock recorded (branch `main`, commits `8f54c07` → `29bdb8a`)
+
+**Goal:** ship the local scaffold to GitHub with the T4 enforcement tiers live, and record the account-level ceiling honestly.
+
+**Shipped:**
+- repo `xenodeve/Agentic-Framework` (GitHub normalised the space in `Agentic Framework` to a hyphen) — `main` pushed, remote bound
+- 24 triage/type/component/lifecycle labels created (22 created; `wontfix` + `Bug` already existed as GitHub defaults)
+- issue #1 (bootstrap, closed with the closing-reason comment) + issue #2 (CI restoration, open, `ready-for-human`)
+- `core.hooksPath .githooks` bound — the three guards ran live on every push (issue-ref, gate-ledger, tree-budget all exercised)
+- `workflow_dispatch` added to `t4-verify.yml` so the gate can be re-armed without a new commit
+
+**The ceiling (recorded, not hidden):** the account is **billing-locked** — every Actions run is a 0s `startup_failure`. Per the T4 `ci-cd-layer` "cannot run at all" protocol: `requireGreenCI: false` in `.claude/t4.json` (with no checks at all, `true` would deny every merge forever), `pre-push` no longer claims a CI backstop, `CLAUDE.md` + the ledger state that a merged PR here means "the author ran `bun run verify`". Rulesets and classic branch protection are **Pro-only** (both 403); the `security-and-analysis` endpoint is 404 (secret scanning + push protection not configurable from this account). What landed: `automated-security-fixes` enabled, `vulnerability-alerts` PUT accepted. A human merging on the web is bound by **nothing** server-side on this account — the local tiers are the entire gate.
+
+**Validation:** `bun run verify` green (lint + typecheck + build, SSG all routes). Fresh production serve + curl: `/`, `/ecosystem`, `/ecosystem/{xeno-skills,openclink,clone-space}`, `/blog`, `/blog/the-agentic-framework` → 200 with rendered content markers; unknown slug + unknown route → 404.
+
+---
+
 ## 2026-09-02 — site scaffold + T4 operating layer (branch `main`, repo not yet pushed)
 
 **Goal:** stand up the presentation + blog site for the Agentic Framework ecosystem with the T4 operating standard, ready for content that is still being distilled (sources in `docs/` exist; the IA spec is `draft`).
