@@ -10,10 +10,10 @@
 
 | Item | Status | Gate | Next action |
 |---|---|---|---|
-| IA + content design spec — `docs/superpowers/specs/2026-09-02-site-ia-storytelling-design.md` | 🟡 | `status: draft` (developer: requirements not final) | developer approves the spec, then restructure routes per §2 |
-| xeno-skills hub page (`/` single-scroll storytelling, `/?skill=<slug>` origin-story popups) | 🔴 | spec approval | distill from `docs/xeno-skills-present-blog-brief.md` (855 lines) + `xeno-skills-origin-stories.md` |
-| `/ecosystem/openclink` + `/ecosystem/clone-space` deep pages | 🔴 | spec approval | distill from `docs/openclink-{analysis,present-blog-brief}.md` + `docs/clone-space-{analysis,present-blog-brief}.md` |
-| `/ecosystem` index removal (hub-and-spoke replaces it) | 🔴 | spec approval | the scaffold currently has the index page the spec cuts |
+| IA + content design spec — `docs/superpowers/specs/2026-09-02-site-ia-storytelling-design.md` | ✅ | **approved 2026-09-02** (developer directive) | implemented in the redesign issues below |
+| xeno-skills hub page (`/` single-scroll storytelling, `/?skill=<slug>` origin-story popups) | 🟢 | spec approved | distill from `docs/xeno-skills-present-blog-brief.md` (855 lines) + `xeno-skills-origin-stories.md` |
+| `/ecosystem/openclink` + `/ecosystem/clone-space` deep pages | 🟢 | spec approved | distill from `docs/openclink-{analysis,present-blog-brief}.md` + `docs/clone-space-{analysis,present-blog-brief}.md` |
+| `/ecosystem` index → 308 `/#built-on` (spec §9.4) | 🟢 | spec approved | the scaffold's index page is replaced by the redirect |
 | Codex code review (xeno-skills) | 🔴 | review not finished | when it lands in `docs/`, fold into the hub page evidence section |
 
 ## Site
