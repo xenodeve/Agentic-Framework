@@ -4,7 +4,14 @@ import matter from "gray-matter";
 
 const ROOT = process.cwd();
 
-export type EcosystemItem = {
+/** Thai fields are attached when a `*.th.md` sibling exists. */
+export type Localized = {
+  titleTh?: string;
+  descriptionTh?: string;
+  bodyTh?: string;
+};
+
+export type EcosystemItem = Localized & {
   slug: string;
   title: string;
   description: string;
@@ -14,7 +21,7 @@ export type EcosystemItem = {
   body: string;
 };
 
-export type Post = {
+export type Post = Localized & {
   slug: string;
   title: string;
   description: string;
@@ -32,14 +39,31 @@ function load<T>(dir: string): T[] {
   } catch {
     return [];
   }
-  return files
-    .filter((file) => file.endsWith(".md"))
+  // A `*.th.md` is a translation sibling, not its own entry: it must never
+  // become a slug (a fake /ecosystem/<slug>.th route) — it attaches below.
+  const entries = files.filter(
+    (file) => file.endsWith(".md") && !file.endsWith(".th.md"),
+  );
+  return entries
     .map((file) => {
       const slug = file.replace(/\.md$/, "");
       const { data, content } = matter(
         readFileSync(path.join(ROOT, dir, file), "utf8"),
       );
-      return { slug, ...data, body: content } as T;
+      const item = { slug, ...data, body: content } as unknown as T &
+        Localized;
+      const thFile = `${slug}.th.md`;
+      if (files.includes(thFile)) {
+        const { data: thData, content: thContent } = matter(
+          readFileSync(path.join(ROOT, dir, thFile), "utf8"),
+        );
+        if (typeof thData.title === "string") item.titleTh = thData.title;
+        if (typeof thData.description === "string") {
+          item.descriptionTh = thData.description;
+        }
+        item.bodyTh = thContent;
+      }
+      return item as T;
     });
 }
 

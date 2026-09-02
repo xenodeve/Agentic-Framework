@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { localized } from "./i18n";
 
 /** Canonical hub sections, in spec §3 order. */
 export const HUB_SECTIONS = [
@@ -73,10 +74,34 @@ export function parseHubContent(raw: string): HubContent {
   };
 }
 
-export function loadHubContent(): HubContent {
-  const raw = readFileSync(
-    path.join(process.cwd(), "content", "hub-content.md"),
-    "utf8",
+/**
+ * A Thai section that is missing or empty falls back to English per key, so a
+ * partially-translated hub never renders a blank section.
+ */
+export function mergeHubLocales(en: HubContent, th?: HubContent): HubContent {
+  if (!th) return en;
+  const sections = {} as Record<HubSectionSlug, string>;
+  for (const slug of HUB_SECTIONS) {
+    sections[slug] = localized("th", th.sections[slug], en.sections[slug]);
+  }
+  return {
+    title: localized("th", th.title, en.title),
+    description: localized("th", th.description, en.description),
+    sections,
+  };
+}
+
+/** English is the required source; the Thai sibling is optional. */
+export function loadLocalizedHub(): { th: HubContent; en: HubContent } {
+  const en = parseHubContent(
+    readFileSync(path.join(process.cwd(), "content", "hub-content.md"), "utf8"),
   );
-  return parseHubContent(raw);
+  const thPath = path.join(process.cwd(), "content", "hub-content.th.md");
+  let th: HubContent | undefined;
+  try {
+    th = parseHubContent(readFileSync(thPath, "utf8"));
+  } catch {
+    // no Thai file yet — the site simply renders English everywhere
+  }
+  return { th: mergeHubLocales(en, th), en };
 }

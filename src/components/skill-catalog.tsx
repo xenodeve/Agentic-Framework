@@ -2,6 +2,8 @@
 
 import { useEffect, useSyncExternalStore, useState } from "react";
 import type { SiteSkill } from "@/lib/skills";
+import { useLang } from "@/lib/i18n-react";
+import { UI_STRINGS } from "@/lib/ui-strings";
 
 /** useSyncExternalStore needs a stable subscribe; we only read once per render. */
 const emptySubscribe = () => () => {};
@@ -20,6 +22,7 @@ type Props = {
  * `searchParams`) so `/` stays a static route; unknown slugs are ignored.
  */
 export function SkillCatalog({ skills, familyLabels }: Props) {
+  const t = UI_STRINGS[useLang()].catalog;
   const [manual, setManual] = useState<string | null>(null);
   const [deepLinkDismissed, setDeepLinkDismissed] = useState(false);
 
@@ -88,14 +91,14 @@ export function SkillCatalog({ skills, familyLabels }: Props) {
         ))}
         {standalone.length > 0 && (
           <div className="py-6">
-            <p className="label text-faint">Standalone</p>
+            <p className="label text-faint">{t.standalone}</p>
             <div className="mt-2">{standalone.map(row)}</div>
           </div>
         )}
       </div>
       {/* the count comes from the generated manifest — never a literal */}
       <p className="metadata mt-4">
-        {skills.length} skills · generated from SKILL.md frontmatter
+        {skills.length} {t.skillsWord} · {t.generatedNote}
       </p>
 
       {skills.map((skill) => (
@@ -160,6 +163,7 @@ function Panel({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = UI_STRINGS[useLang()].catalog;
   const story = skill.originStory;
   const inheritedLabel = skill.inheritedFrom
     ? (familyLabels[skill.inheritedFrom] ?? skill.inheritedFrom)
@@ -196,8 +200,8 @@ function Panel({
             </h3>
             <p className="metadata mt-1">
               {inheritedLabel
-                ? `inherited from ${inheritedLabel}`
-                : (familyLabels[skill.family ?? ""] ?? "standalone")}
+                ? `${t.inheritedPrefix}${inheritedLabel}`
+                : (familyLabels[skill.family ?? ""] ?? t.standalone)}
             </p>
           </div>
           <button
@@ -213,9 +217,9 @@ function Panel({
         <div className="px-6 py-5">
           {story ? (
             <div className="space-y-6">
-              <StoryBlock label="Problem" text={story.problem} />
-              <StoryBlock label="Attempt" text={story.attempt} />
-              <StoryBlock label="Effectiveness" text={story.effectiveness} />
+              <StoryBlock label={t.problem} text={story.problem} />
+              <StoryBlock label={t.attempt} text={story.attempt} />
+              <StoryBlock label={t.effectiveness} text={story.effectiveness} />
               {(story.date || story.source) && (
                 <p className="metadata">
                   {[story.date, story.source].filter(Boolean).join(" · ")}
@@ -223,12 +227,11 @@ function Panel({
               )}
               {inheritedLabel && (
                 <p className="text-xs leading-relaxed text-faint">
-                  No story of its own — inherits the {inheritedLabel} family’s
-                  story.
+                  {t.inheritNote.replace("{label}", inheritedLabel)}
                   {entryExists && (
                     <>
                       {" "}
-                      See{" "}
+                      {t.seeWord}{" "}
                       <a
                         href={`/?skill=${entrySlug}`}
                         className="text-accent underline decoration-edge-strong underline-offset-4"
@@ -243,7 +246,7 @@ function Panel({
             </div>
           ) : (
             <p className="text-sm leading-relaxed text-muted">
-              No origin story recorded yet — the story is never invented.
+              {t.noStory}
             </p>
           )}
         </div>

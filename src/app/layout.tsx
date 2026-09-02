@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="th"
       className={`${geistSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${anuphan.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
