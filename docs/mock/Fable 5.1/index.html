@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xeno-skills — Agentic Framework (mock · Fable 5.1)</title>
+<meta name="description" content="Agent-primary skills and workflow-enforcement hooks for repositories that ship with evidence.">
+<link rel="icon" href="data:,">
+<meta property="og:title" content="xeno-skills — from prompts to shipped work, with evidence">
+<meta property="og:description" content="Agent-primary skills and workflow-enforcement hooks for repositories that ship with evidence. Powered by openclink and Clone Space.">
+<meta property="og:image" content="/og/xeno-skills.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------- tokens */
+:root{
+  --paper:#f3f3f0;        /* neutral base */
+  --paper-2:#e9e9e4;
+  --ink:#131412;
+  --ink-2:#5d605b;
+  --ink-3:#6f726d;        /* 4.6:1 on paper — small mono labels */
+  --rule:rgba(19,20,18,.14);
+  --rule-2:rgba(19,20,18,.07);
+  --accent:#e63312;       /* the single accent — Swiss red */
+  --accent-ink:#b8260b;   /* 6.3:1 — accent used as text */
+  --accent-cta:#cf2c0e;   /* 5.3:1 with white — filled CTA */
+  /* Major Third 1.25 from 16px */
+  --t-0:1rem;--t-1:1.25rem;--t-2:1.5625rem;--t-3:1.953rem;--t-4:2.441rem;--t-5:3.052rem;--t-6:3.815rem;
+  --s-1:8px;--s-2:16px;--s-3:24px;--s-4:32px;--s-6:48px;--s-8:64px;--s-12:96px;
+  --glass-bg:linear-gradient(140deg,rgba(255,255,255,.62),rgba(255,255,255,.28) 55%,rgba(255,255,255,.40));
+  --glass-line:rgba(255,255,255,.75);
+  --glass-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 -1px 0 rgba(19,20,18,.06) inset,0 18px 48px -24px rgba(19,20,18,.35),0 0 0 1px rgba(19,20,18,.06);
+  --display:"Archivo","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai","Archivo",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --container:1360px;
+  --gutter:clamp(16px,3vw,40px);
+  --gap:clamp(12px,1.5vw,24px);
+  --baseline:8px;
+  --nav-h:64px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 24px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 calc(var(--baseline)*4 - 1px),rgba(19,20,18,.045) calc(var(--baseline)*4 - 1px) calc(var(--baseline)*4));
+}
+a{color:inherit}
+h1,h2,h3,h4{margin:0;font-family:var(--display);font-weight:600;letter-spacing:-.025em;line-height:1.14}
+p{margin:0}
+code{font-family:var(--mono);font-size:.85em;background:rgba(19,20,18,.05);padding:.08em .35em;border-radius:3px}
+pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre;overflow-x:auto}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* -------------------------------------------------------- visible grid */
+.wrap{max-width:var(--container);margin:0 auto;padding:0 var(--gutter);position:relative}
+.g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:calc(var(--baseline)*3)}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1;transition:opacity .25s}
+.grid-overlay .wrap{height:100%}
+.grid-overlay .g{height:100%;row-gap:0}
+.grid-overlay .g span{border-left:1px solid var(--rule-2);border-right:1px solid var(--rule-2);background:rgba(230,51,18,.018)}
+body.grid-off .grid-overlay{opacity:0}
+.ruler{position:fixed;top:var(--nav-h);left:0;right:0;z-index:2;pointer-events:none;font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.06em}
+.ruler .g span{border-top:1px solid var(--rule);padding-top:4px}
+.ruler .g span::before{content:attr(data-n)}
+body.grid-off .ruler{opacity:0}
+/* 12 → 4 columns on phones (design-rules 12/8/4) */
+@media (max-width:1023px){.g{grid-template-columns:repeat(8,minmax(0,1fr))}.grid-overlay .g span:nth-child(n+9),.ruler .g span:nth-child(n+9){display:none}}
+@media (max-width:639px){.g{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-overlay .g span:nth-child(n+5),.ruler .g span:nth-child(n+5){display:none}}
+
+/* --------------------------------------------------------- liquid glass */
+.glass{
+  background:var(--glass-bg);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid var(--glass-line);box-shadow:var(--glass-shadow);
+  position:relative;isolation:isolate;
+}
+.glass::before{ /* specular edge */
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:radial-gradient(120% 80% at 8% 0%,rgba(255,255,255,.55),transparent 55%),
+             radial-gradient(60% 50% at 100% 100%,rgba(230,51,18,.05),transparent 60%);
+}
+
+/* ------------------------------------------------------------------ nav */
+.nav{position:sticky;top:0;z-index:20;height:var(--nav-h);border-radius:0;border-left:0;border-right:0;border-top:0}
+.nav .wrap{height:100%;display:flex;align-items:center;gap:24px}
+.brand{font-family:var(--display);font-weight:700;letter-spacing:-.03em;font-size:18px;text-decoration:none;display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand small{font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+.nav__links{display:flex;gap:2px;margin-left:auto;list-style:none;padding:0;margin-top:0;margin-bottom:0}
+.nav__links a{font-family:var(--mono);font-size:12px;letter-spacing:.02em;text-decoration:none;padding:8px 10px;border-radius:6px;color:var(--ink-2)}
+.nav__links a:hover{background:rgba(19,20,18,.06);color:var(--ink)}
+.nav__tools{display:flex;gap:8px;margin-left:8px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:999px;border:1px solid var(--rule);background:transparent;cursor:pointer}
+.chip:hover{background:rgba(19,20,18,.06)}
+.chip:active{transform:scale(.97)}
+.chip:disabled{opacity:.5;cursor:not-allowed}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip.accent{background:var(--accent-cta);border-color:var(--accent-cta);color:#fff;text-decoration:none}
+.chip.accent:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+/* hero CTA pair (design-rules §6: one primary CTA above the fold) */
+.hero__cta{grid-column:1/8;display:flex;gap:12px;flex-wrap:wrap;margin-top:var(--s-1)}
+.btn{font-family:var(--mono);font-size:13px;letter-spacing:.02em;text-decoration:none;height:44px;padding:0 22px;border-radius:8px;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);color:var(--ink);transition:transform .15s,background .2s}
+.btn:hover{background:rgba(19,20,18,.06)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent-cta);border-color:var(--accent-cta);color:#fff}
+.btn.primary:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+@media (max-width:1023px){.nav__links{display:none}}
+@media (max-width:639px){.brand small{display:none}.nav .wrap{gap:12px}.nav__tools{margin-left:auto}}
+
+/* --------------------------------------------------------------- layout */
+main{position:relative;z-index:1}
+.section{padding:var(--s-12) 0}
+.section__head{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:start;margin-bottom:calc(var(--baseline)*5)}
+.section__head .eyebrow{grid-column:1/3}
+.section__head h2{grid-column:3/9;font-size:clamp(var(--t-4),3.6vw,var(--t-5));font-variation-settings:"wdth" 92}
+.section__head .lede{grid-column:9/13;color:var(--ink-2);font-size:var(--t-0);padding-top:8px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);display:inline-flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:8px;height:8px;background:var(--accent);display:inline-block}
+.eyebrow.plain::before{display:none}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--rule);border-radius:3px;color:var(--ink-2);white-space:nowrap}
+.tag.warn{border-color:var(--accent);color:var(--accent-ink)}
+@media (max-width:1023px){
+  .section__head{display:block}
+  .section__head h2{margin:8px 0 12px}
+}
+
+/* ----------------------------------------------------------------- hero */
+.hero{padding:calc(var(--baseline)*10) 0 calc(var(--baseline)*12);border-top:0}
+.hero__title{grid-column:1/-1;font-size:clamp(64px,14.5vw,208px);font-weight:700;letter-spacing:-.055em;line-height:.86;font-variation-settings:"wdth" 82;margin-top:calc(var(--baseline)*4)}
+.hero__title i{font-style:normal;color:var(--accent)}
+.hero__statement{grid-column:1/8;font-family:var(--display);font-size:clamp(var(--t-2),2.6vw,var(--t-3));letter-spacing:-.025em;line-height:1.15;margin-top:var(--s-3)}
+.hero__th{grid-column:1/7;color:var(--ink-2);font-size:var(--t-0);max-width:52ch}
+.hero__powered{grid-column:8/13;grid-row:span 2;align-self:end;justify-self:end;display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right}
+.hero__powered .eyebrow{color:var(--ink-3)}
+.hero__powered a{font-family:var(--mono);font-size:13px;text-decoration:none;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.hero__powered a:hover{color:var(--ink);border-color:var(--ink)}
+.hero__spec{grid-column:1/-1;margin-top:var(--s-6);display:grid;grid-template-columns:subgrid;border-top:1px solid var(--rule)}
+.hero__spec div{grid-column:span 3;padding:12px 0 0;border-right:1px solid var(--rule-2);padding-right:16px}
+.hero__spec div:last-child{border-right:0}
+.hero__spec b{display:block;font-family:var(--display);font-weight:600;font-size:var(--t-2);letter-spacing:-.025em}
+.hero__spec span{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+@media (max-width:1023px){
+  .hero__statement,.hero__th{grid-column:1/-1}
+  .hero__powered{grid-column:1/-1;grid-row:auto;align-items:flex-start;text-align:left;justify-self:start}
+  .hero__cta{grid-column:1/-1}
+  .hero__spec{display:grid;grid-template-columns:1fr 1fr}
+  .hero__spec div{grid-column:auto}
+}
+
+/* -------------------------------------------------------------- problem */
+.problems{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.problem{grid-column:span 3;padding:var(--s-3) var(--s-3) var(--s-3) 0;border-top:2px solid var(--ink);position:relative}
+.problem .ref{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.06em}
+.problem h3{font-size:var(--t-1);margin:var(--s-1) 0;font-variation-settings:"wdth" 95}
+.problem p{font-size:14px;color:var(--ink-2)}
+.problem .fix{margin-top:var(--s-2);font-size:13px;padding-left:12px;border-left:2px solid var(--accent)}
+.problem .fix b{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);display:block;margin-bottom:2px}
+@media (max-width:1023px){.problem{grid-column:span 4}}
+@media (max-width:639px){.problem{grid-column:1/-1}}
+
+/* ------------------------------------------------------------- outcomes */
+.outcomes{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.outcome{grid-column:span 3;padding:var(--s-4) var(--s-3) var(--s-4) 0}
+.outcome h3{font-size:clamp(var(--t-4),4.4vw,var(--t-6));font-variation-settings:"wdth" 78;letter-spacing:-.04em}
+.outcome p{margin-top:var(--s-2);font-size:14px;color:var(--ink-2)}
+.outcome code{display:inline-block;margin-top:10px}
+@media (max-width:1023px){.outcome{grid-column:span 4}}
+@media (max-width:639px){.outcome{grid-column:1/-1}}
+
+/* ------------------------------------------------------------- diagrams */
+/* the one element allowed to break the grid (design-rules §3.3): bleeds one gutter each side */
+.diagram{grid-column:1/-1;padding:var(--s-4);border-radius:16px;margin:0 calc(-1 * var(--gutter))}
+.diagram svg{width:100%;height:auto;display:block;font-family:var(--mono);font-size:12px}
+.diagram .lbl{fill:var(--ink)}
+.diagram .sub{fill:var(--ink-2);font-size:11px}
+.diagram .box{fill:rgba(255,255,255,.55);stroke:var(--ink);stroke-width:1.2}
+.diagram .box.hub{fill:var(--ink);stroke:var(--ink)}
+.diagram .box.hub + text,.diagram .hubtext{fill:var(--paper)}
+.diagram .arrow{stroke:var(--ink);stroke-width:1.2;fill:none;marker-end:url(#arr)}
+.diagram .dev{stroke:var(--accent);stroke-dasharray:4 4}
+.diagram .devtag{fill:var(--accent)}
+.diagram__cap{grid-column:1/-1;font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:-8px}
+.flow{grid-column:1/-1;display:grid;grid-template-columns:subgrid;row-gap:0}
+.flow__col{grid-column:span 6;padding:var(--s-3);border-radius:16px}
+.flow__col h4{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin-bottom:12px}
+.flow__col ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.flow__col li{padding:var(--s-1) 0;border-top:1px solid var(--rule-2);font-family:var(--display);font-size:var(--t-1);display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.flow__col li small{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.flow__col li.gate{justify-content:flex-start;gap:10px}
+.flow__col li.gate::before{content:"";width:6px;height:6px;background:var(--accent);flex:none;align-self:center}
+.flow__col li.human{background:rgba(19,20,18,.04);margin:0 calc(-1 * var(--s-3));padding:var(--s-1) var(--s-3)}
+.quote{grid-column:1/-1;font-family:var(--display);font-size:clamp(var(--t-3),3.2vw,var(--t-5));letter-spacing:-.03em;line-height:1.1;font-variation-settings:"wdth" 88;padding:var(--s-2) 0 0;max-width:22ch}
+.quote i{font-style:normal;color:var(--accent)}
+@media (max-width:1023px){.flow__col{grid-column:1/-1}}
+
+/* --------------------------------------------------------------- skills */
+.catalog{grid-column:1/-1;display:grid;grid-template-columns:subgrid;row-gap:calc(var(--baseline)*6)}
+.family{grid-column:1/-1;display:grid;grid-template-columns:subgrid;align-items:start}
+.family__head{grid-column:1/3;position:sticky;top:calc(var(--nav-h) + 24px)}
+.family__head h3{font-size:var(--t-1);font-variation-settings:"wdth" 95}
+.family__head p{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px;line-height:1.5}
+.family__head .count{font-family:var(--display);font-size:var(--t-5);font-weight:600;letter-spacing:-.04em;line-height:1;display:block;margin-bottom:var(--s-1)}
+.family__grid{grid-column:3/13;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:var(--gap)}
+.skill{
+  text-align:left;display:flex;flex-direction:column;gap:var(--s-1);min-height:152px;padding:var(--s-2);
+  border:1px solid var(--rule);border-radius:12px;background:rgba(255,255,255,.35);cursor:pointer;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s,background .25s;
+}
+.skill:active{transform:scale(.985)}
+.skill:hover,.skill:focus-visible{background:var(--glass-bg);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);border-color:var(--glass-line);box-shadow:var(--glass-shadow);transform:translateY(-2px)}
+.skill__name{font-family:var(--mono);font-size:14px;font-weight:500}
+.skill__tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.skill__tag.is-incident{color:var(--accent-ink)}
+.skill__tag.is-measured{color:var(--ink)}
+.skill__summary{font-size:13px;color:var(--ink-2);margin-top:auto;line-height:1.45;opacity:.85;transition:opacity .2s}
+.skill:hover .skill__summary{opacity:1}
+.catalog__note{grid-column:3/13;font-family:var(--mono);font-size:12px;color:var(--ink-2);display:flex;gap:18px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--rule)}
+.catalog__note b{font-weight:500;color:var(--ink)}
+@media (max-width:1023px){
+  .family__head{grid-column:1/-1;position:static;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .family__head .count{font-size:28px;margin:0}
+  .family__head p{flex-basis:100%;margin-top:0}
+  .family__grid,.catalog__note{grid-column:1/-1}
+}
+
+/* ------------------------------------------------------------ text rows */
+.rows{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.row{grid-column:1/-1;display:grid;grid-template-columns:subgrid;padding:var(--s-3) 0;border-top:1px solid var(--rule)}
+.row:last-child{border-bottom:1px solid var(--rule)}
+.row .k{grid-column:1/4;font-family:var(--mono);font-size:13px;font-weight:500;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.row .v{grid-column:4/10;font-size:var(--t-0)}
+.row .v p+p{margin-top:8px;color:var(--ink-2)}
+.row .m{grid-column:10/13;font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.6}
+@media (max-width:1023px){.row{display:block}.row .m{margin-top:8px}}
+.side{grid-column:9/13;align-self:start;position:sticky;top:calc(var(--nav-h) + 24px);padding:var(--s-3);border-radius:16px}
+.side h3{font-size:var(--t-2);font-variation-settings:"wdth" 92}
+.side p{font-size:14px;color:var(--ink-2);margin-top:10px}
+.side ul{margin:12px 0 0;padding:0;list-style:none;font-family:var(--mono);font-size:12px}
+.side li{padding:6px 0;border-top:1px solid var(--rule-2)}
+.side .cta{display:inline-block;margin-top:var(--s-2);font-family:var(--mono);font-size:12px;text-decoration:none;padding:12px 16px;border-radius:8px;background:var(--ink);color:var(--paper);transition:transform .15s,opacity .2s}
+.side .cta:hover{opacity:.85}
+.side .cta:active{transform:scale(.97)}
+.rows.narrow{grid-column:1/9}
+.rows.narrow .row .k{grid-column:1/3}
+.rows.narrow .row .v{grid-column:3/8}
+.rows.narrow .row .m{grid-column:8/9;display:none}
+@media (max-width:1023px){.rows.narrow,.side{grid-column:1/-1;position:static}}
+
+/* --------------------------------------------------------------- hooks */
+.ladder{grid-column:1/9;border-collapse:collapse;width:100%;font-size:14px}
+.ladder th{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:0 12px 10px 0;border-bottom:1px solid var(--ink)}
+.ladder td{padding:14px 12px 14px 0;border-bottom:1px solid var(--rule-2);vertical-align:top}
+@media (max-width:639px){.ladder{font-size:13px}.ladder td:first-child{white-space:normal;font-size:10px}}
+.ladder td:first-child{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.ladder tr.strong td{background:rgba(230,51,18,.05)}
+.ladder tr.human td{font-weight:500}
+.limits{grid-column:9/13;padding:var(--s-3);border-radius:16px;border:1px solid var(--accent);background:rgba(230,51,18,.03)}
+.limits h3{font-size:15px;font-family:var(--mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+.limits ul{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--ink-2)}
+.limits li+li{margin-top:6px}
+.limits .creed{margin-top:var(--s-2);font-family:var(--display);font-size:var(--t-1);color:var(--ink);letter-spacing:-.01em;line-height:1.3}
+@media (max-width:1023px){.ladder,.limits{grid-column:1/-1}}
+
+/* ------------------------------------------------------------ evidence */
+.evs{grid-column:1/-1;display:grid;grid-template-columns:subgrid;row-gap:var(--s-4)}
+.evs__group{grid-column:1/-1;display:grid;grid-template-columns:subgrid;row-gap:var(--s-2)}
+.evs__label{grid-column:1/-1;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding-top:var(--s-2);border-top:1px solid var(--rule)}
+.evs__group .ev{grid-column:span 6}
+@media (max-width:1023px){.evs__group .ev{grid-column:span 4}}
+@media (max-width:639px){.evs__group .ev{grid-column:1/-1}}
+.ev{grid-column:span 4;padding:var(--s-3);border-radius:16px;border:1px solid var(--rule);background:rgba(255,255,255,.3);display:flex;flex-direction:column;gap:var(--s-2)}
+.ev__metric .num{font-family:var(--display);font-size:clamp(var(--t-4),3.4vw,var(--t-5));font-weight:600;letter-spacing:-.04em;font-variation-settings:"wdth" 80;display:block;line-height:1}
+.ev__metric .unit{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.ev__claim{font-size:var(--t-1);font-variation-settings:"wdth" 95;letter-spacing:-.01em}
+.ev__meta{margin:0;display:grid;gap:6px;font-size:12px;border-top:1px solid var(--rule-2);padding-top:12px}
+.ev__meta div{display:grid;grid-template-columns:76px 1fr;gap:8px}
+.ev__meta dt{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding-top:2px}
+.ev__meta dd{margin:0;color:var(--ink-2)}
+.ev__limit dd{color:var(--accent-ink)}
+@media (max-width:1023px){.ev{grid-column:span 4}}
+@media (max-width:639px){.ev{grid-column:1/-1}}
+
+/* ------------------------------------------------------------ built on */
+.tools{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.tool{grid-column:span 6;padding:var(--s-4);border-radius:16px;display:grid;gap:var(--s-2);text-decoration:none;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.tool:hover{transform:translateY(-3px)}
+.tool__top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tool h3{font-size:clamp(var(--t-3),3vw,var(--t-4));font-variation-settings:"wdth" 84;letter-spacing:-.035em}
+.tool .role{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.tool p{font-size:14px;color:var(--ink-2)}
+.tool .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;border-top:1px solid var(--rule);padding-top:12px}
+.tool .facts b{display:block;font-family:var(--display);font-size:var(--t-1);letter-spacing:-.025em}
+.tool .facts span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.04em;line-height:1.4}
+.tool .flag{font-size:13px;padding:10px 12px;border-left:2px solid var(--accent);background:rgba(230,51,18,.04)}
+.tool .go{font-family:var(--mono);font-size:12px;margin-top:4px;justify-self:start;border-bottom:1px solid var(--ink)}
+@media (max-width:1023px){.tool{grid-column:1/-1}}
+
+/* ------------------------------------------------------------- install */
+.installs{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.install{grid-column:span 4;min-width:0;padding:var(--s-3);border-radius:12px;border:1px solid var(--rule)}
+.install h3{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.install p{font-size:13px;color:var(--ink-2);margin:var(--s-1) 0 var(--s-2)}
+.install pre{padding:var(--s-2);border-radius:8px;background:var(--ink);color:var(--paper)}
+.install__note{grid-column:1/-1;font-family:var(--mono);font-size:12px;color:var(--ink-2);padding-top:12px;border-top:1px solid var(--rule)}
+@media (max-width:1023px){.install{grid-column:span 4}}
+@media (max-width:639px){.install{grid-column:1/-1}}
+
+/* ---------------------------------------------------------------- blog */
+.posts{grid-column:1/-1;display:grid;grid-template-columns:subgrid}
+.post{grid-column:span 4;padding:var(--s-3) var(--s-3) var(--s-3) 0;border-top:1px solid var(--ink);text-decoration:none}
+.post .eyebrow{color:var(--ink-3)}
+.post h3{font-size:var(--t-2);margin:var(--s-1) 0;font-variation-settings:"wdth" 92;letter-spacing:-.025em}
+.post p{font-size:14px;color:var(--ink-2)}
+.post:hover h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+@media (max-width:1023px){.post{grid-column:span 4}}
+@media (max-width:639px){.post{grid-column:1/-1}}
+
+/* -------------------------------------------------------------- footer */
+.footer{border-top:1px solid var(--ink);padding:var(--s-6) 0 var(--s-8);font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.footer .g>div{grid-column:span 3}
+.footer b{display:block;color:var(--ink);font-weight:500;margin-bottom:8px}
+.footer a{text-decoration:none;display:block;padding:2px 0}
+.footer a:hover{color:var(--ink)}
+@media (max-width:1023px){.footer .g>div{grid-column:span 4}}
+
+/* ---------------------------------------------------------------- popup */
+.popup{
+  border:0;padding:0;margin:auto;max-width:min(760px,calc(100vw - 32px));width:100%;
+  border-radius:18px;color:var(--ink);
+  background:linear-gradient(140deg,rgba(255,255,255,.86),rgba(243,243,240,.78));
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 40px 80px -30px rgba(19,20,18,.45),0 0 0 1px rgba(19,20,18,.08);
+}
+.popup::backdrop{background:rgba(19,20,18,.28);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.popup__inner{padding:32px;display:grid;gap:22px;max-height:calc(100vh - 80px);overflow:auto}
+.popup__head{position:relative;padding-right:44px;display:grid;gap:8px}
+.popup__head h3{font-family:var(--mono);font-weight:500;font-size:var(--t-2);letter-spacing:-.01em}
+.popup__summary{font-size:var(--t-0);color:var(--ink-2)}
+.popup__close{position:absolute;top:-6px;right:-6px;width:40px;height:40px;border-radius:50%;border:1px solid var(--rule);background:rgba(255,255,255,.6);cursor:pointer;font-size:22px;line-height:1}
+.popup__close:hover{background:var(--ink);color:var(--paper)}
+.popup__close:active{transform:scale(.94)}
+.story{margin:0;display:grid;gap:0;border-top:1px solid var(--ink)}
+.story div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--rule-2)}
+.story dt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);padding-top:3px}
+.story dd{margin:0;font-size:14.5px;line-height:1.6}
+.story div:nth-child(3) dd{color:var(--ink-2)}
+.story__meta{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.story__meta b{font-weight:500;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-right:6px}
+.story__inherit{font-size:15px;padding:16px;border-left:2px solid var(--accent);background:rgba(230,51,18,.04)}
+.story__inherit a{font-family:var(--mono)}
+.story__inherit-note{font-size:14px;color:var(--ink-2)}
+.popup__link{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+@media (max-width:639px){
+  .popup{max-width:100vw;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:92vh}
+  .popup__inner{padding:22px}
+  .story div{grid-template-columns:1fr;gap:4px}
+}
+
+/* --------------------------------------------------------------- reveal */
+@media (prefers-reduced-motion:no-preference){
+  .reveal{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+}
+/* ---- exploration variant overrides (empty in production) ---- */
+
+:root{--paper:#f4f5f3;--paper-2:#e8eae6}
+.hero{background:var(--ink);color:var(--paper);padding-top:var(--s-12)}
+.hero .eyebrow,.hero__th,.hero__powered a,.hero__powered .eyebrow,.hero__spec span{color:rgba(244,245,243,.66)}
+.hero__powered a{border-color:rgba(244,245,243,.3)}
+.hero__powered a:hover{color:var(--paper);border-color:var(--paper)}
+.hero__spec{border-top-color:rgba(244,245,243,.3)}
+.hero__spec div{border-right-color:rgba(244,245,243,.12)}
+.hero .btn{border-color:var(--paper);color:var(--paper)}
+.hero .btn:hover{background:rgba(255,255,255,.1)}
+.hero .btn.primary{background:var(--accent-cta);border-color:var(--accent-cta);color:#fff}
+.hero .tag.warn{border-color:var(--accent);color:#ff8c70}
+.hero__title{font-variation-settings:"wdth" 70;font-weight:800;letter-spacing:-.06em;font-size:clamp(72px,16vw,232px)}
+.hero__title i{color:var(--accent)}
+.ruler{color:var(--accent-ink)}
+.ruler .g span{border-top-color:var(--accent)}
+.grid-overlay .g span{border-color:rgba(19,20,18,.11);background:transparent}
+.section__head h2{font-variation-settings:"wdth" 80;letter-spacing:-.04em;text-transform:none}
+.outcome h3{font-variation-settings:"wdth" 66;font-weight:800}
+.eyebrow::before{width:10px;height:10px}
+.problem{border-top:4px solid var(--ink)}
+.problem:first-child{border-top-color:var(--accent)}
+
+/* B · Quiet Ledger — sticky left index per section, content in cols 4–12 */
+.section:not(.hero) .wrap.g > *:not(.section__head){grid-column:4/-1}
+.section:not(.hero) .section__head{grid-column:1/4;display:block;position:sticky;top:calc(var(--nav-h) + var(--s-3));align-self:start;margin-bottom:0;padding-right:var(--s-3)}
+.section__head h2{font-size:var(--t-3);margin:var(--s-1) 0 var(--s-2);font-variation-settings:"wdth" 84}
+.section__head .lede{font-size:14px;padding-top:0}
+.problems,.outcomes{grid-template-columns:repeat(2,minmax(0,1fr))}
+.problem,.outcome{grid-column:auto}
+.evs__group{grid-template-columns:repeat(2,minmax(0,1fr))}
+.evs__group .ev{grid-column:auto}
+.evs__label{grid-column:1/-1}
+.tools{grid-template-columns:repeat(2,minmax(0,1fr))}.tool{grid-column:auto}
+.installs,.posts{grid-template-columns:repeat(3,minmax(0,1fr))}.install,.post{grid-column:auto}
+.install__note{grid-column:1/-1}
+.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.flow__col{grid-column:auto}
+.rows .row{grid-template-columns:2fr 5fr 2fr}.row .k{grid-column:1}.row .v{grid-column:2}.row .m{grid-column:3}
+.rows.narrow{grid-column:4/10}.rows.narrow .row{grid-template-columns:1fr 3fr}.rows.narrow .row .k{grid-column:1}.rows.narrow .row .v{grid-column:2}
+.side{grid-column:10/-1}
+.family{display:block;margin-bottom:var(--s-4)}
+.family__head{position:static;display:flex;gap:var(--s-2);align-items:baseline;margin-bottom:var(--s-2);flex-wrap:wrap}
+.family__head .count{font-size:var(--t-3);margin:0}
+.family__head p{flex-basis:100%;margin-top:0}
+.family__grid{grid-column:auto}
+.catalog__note{grid-column:1/-1}
+.ladder{grid-column:4/10}.limits{grid-column:10/-1}
+.diagram{margin:0}
+@media (max-width:1023px){
+  .section:not(.hero) .wrap.g > *:not(.section__head){grid-column:1/-1}
+  .section:not(.hero) .section__head{grid-column:1/-1;position:static;margin-bottom:var(--s-3)}
+  .rows.narrow,.side,.ladder,.limits{grid-column:1/-1}
+  .installs,.posts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:639px){.problems,.outcomes,.evs__group,.tools,.installs,.posts,.flow{grid-template-columns:minmax(0,1fr)}.rows .row,.rows.narrow .row{display:block}}
+
+
+</style>
+</head>
+<body>
+
+<!-- visible 12-column grid, toggle with the Grid chip or the G key -->
+<div class="grid-overlay" aria-hidden="true"><div class="wrap"><div class="g"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div></div>
+
+<header class="nav glass">
+  <div class="wrap">
+    <a class="brand" href="/">xeno-skills <small>Agentic Framework</small></a>
+    <ul class="nav__links"><li><a href="#problem">Problem</a></li><li><a href="#skills">Skills</a></li><li><a href="#multi-agent">Multi-agent</a></li><li><a href="#t4-standard">T4</a></li><li><a href="#hooks">Hooks</a></li><li><a href="#research">Evidence</a></li><li><a href="#built-on">Built on</a></li><li><a href="#install">Install</a></li><li><a href="/blog">Blog</a></li></ul>
+    <div class="nav__tools">
+      <button class="chip" id="gridToggle" aria-pressed="true" title="toggle grid (G)">Grid</button>
+      <a class="chip accent" href="#install">Install</a>
+    </div>
+  </div>
+</header>
+<div class="ruler" aria-hidden="true"><div class="wrap"><div class="g"><span data-n="01"></span><span data-n="02"></span><span data-n="03"></span><span data-n="04"></span><span data-n="05"></span><span data-n="06"></span><span data-n="07"></span><span data-n="08"></span><span data-n="09"></span><span data-n="10"></span><span data-n="11"></span><span data-n="12"></span></div></div></div>
+
+<main>
+
+<!-- 1 · Hero -->
+<section class="section hero" id="top">
+  <div class="wrap g">
+    <span class="eyebrow" style="grid-column:1/-1">Operating layer for agent-primary repositories · snapshot 2026-09-02</span>
+    <h1 class="hero__title">xeno<i>-</i>skills</h1>
+    <p class="hero__statement">From prompts to shipped work — with evidence.</p>
+    <p class="hero__th">ทักษะและกลไกกำกับ workflow สำหรับ repository ที่ให้ agent ลงมือทำงาน โดยทุกข้อสรุปสำคัญต้องมีหลักฐานตรวจสอบได้ — agent รู้ว่าควรทำอะไร เรียกใช้ใคร จำอะไรไว้ ตรวจสอบอย่างไร และหยุดตรงไหน</p>
+    <div class="hero__cta">
+      <a class="btn primary" href="#install">ติดตั้ง xeno-skills</a>
+      <a class="btn" href="#skills">ดู skill ทั้ง <span data-skill-count>19</span> ตัว</a>
+    </div>
+    <div class="hero__powered">
+      <span class="eyebrow plain">Powered by</span>
+      <a href="/ecosystem/openclink">openclink — multi-CLI transport</a>
+      <a href="/ecosystem/clone-space">Clone Space — design reference source <span class="tag warn">developing</span></a>
+    </div>
+    <div class="hero__spec">
+      <div><b data-skill-count>19</b><span>skills · generated from SKILL.md at build</span></div>
+      <div><b>5</b><span>active hook paths · hooks/hooks.json</span></div>
+      <div><b>opt-in</b><span>runs only where .claude/t4.json exists</span></div>
+      <div><b>MIT</b><span>plugin 0.1.0 · xenodeve/xeno-skills</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · Problem -->
+<section class="section" id="problem">
+  <div class="wrap g" data-title="Problem">
+    <div class="section__head">
+      <span class="eyebrow">Problem</span>
+      <h2>สี่ปัญหาที่เกิดขึ้นจริง ก่อนจะมีชั้นนี้</h2>
+      <p class="lede">architecture ทั้งหมดด้านล่างเกิดจาก session ที่พัง ไม่ใช่ diagram ที่ออกแบบในสุญญากาศ — เลข §3.x ชี้กลับไป brief ต้นทาง</p>
+    </div>
+    <div class="problems">
+      <article class="problem reveal">
+        <span class="ref">brief §3.1</span>
+        <h3>Human-AI communication bottleneck</h3>
+        <p>ให้ AI หลายตัวช่วยออกแบบทีละตัว developer ต้องอยู่ตรงกลางตลอด อ่าน สรุป ตอบซ้ำ</p>
+        <div class="fix"><b>mechanism</b>master agent รับโจทย์ครั้งเดียว เลือก skill กระจายงาน มนุษย์อนุมัติเฉพาะจุดสำคัญ</div>
+      </article>
+      <article class="problem reveal">
+        <span class="ref">brief §3.2</span>
+        <h3>Model bias และ single-shot limitation</h3>
+        <p>ถามโมเดลเดียวครั้งเดียว พลาด edge case, compatibility และ assumption ที่ไม่ได้ตรวจ</p>
+        <div class="fix"><b>mechanism</b><code>clink-brainstorm</code> — หลาย agent หลาย lens challenge loop ก่อนสรุป</div>
+      </article>
+      <article class="problem reveal">
+        <span class="ref">brief §3.3</span>
+        <h3>Context amnesia และ workflow drift</h3>
+        <p>session จบหรือ compact แล้ว agent จำได้แค่ข้อสรุป ลืมเหตุผล หลักฐาน และคำถามที่ปิดไปแล้ว</p>
+        <div class="fix"><b>mechanism</b>memory layer, ledger, records, handoff — เปิดกลับไปเฉพาะ slice ที่เกี่ยว</div>
+      </article>
+      <article class="problem reveal">
+        <span class="ref">brief §3.4</span>
+        <h3>Enforcement theater</h3>
+        <p>กฎใน prompt หรือเอกสารถูกข้ามได้ ถ้าไม่มี hook, guard, test หรือ CI ตรวจจริง</p>
+        <div class="fix"><b>mechanism</b>Documented ≠ enforced. กฎสำคัญที่ไม่มี executable check คือ defect ของระบบ</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Four outcomes + mini architecture -->
+<section class="section" id="outcomes">
+  <div class="wrap g" data-title="Outcomes">
+    <div class="section__head">
+      <span class="eyebrow">Outcomes</span>
+      <h2>สี่สิ่งที่ agent ต้องทำได้</h2>
+      <p class="lede">ทุก skill ใน catalog ตอบอย่างน้อยหนึ่งข้อ — ถ้าไม่ตอบข้อไหนเลย มันไม่ควรอยู่ในไลบรารี</p>
+    </div>
+    <div class="outcomes">
+      <div class="outcome reveal"><h3>Route</h3><p>เลือก skill และ phase ที่ถูกต้องก่อนเริ่ม และ re-route ทุก phase boundary</p><code>ask-xeno → using-t4</code></div>
+      <div class="outcome reveal"><h3>Delegate</h3><p>ส่ง leaf ที่ bounded ให้ agent อื่น ส่วน master ถือ tree ไว้เอง</p><code>clink-* → openclink</code></div>
+      <div class="outcome reveal"><h3>Remember</h3><p>กู้ state ข้าม session และ compaction แบบ retrieval-first ไม่ยัดทั้งหมดลง context</p><code>t4-agent-memory</code></div>
+      <div class="outcome reveal"><h3>Verify</h3><p>ผลจาก subagent ไม่ใช่หลักฐานจนกว่าจะตรวจ diff, output, test, build</p><code>verify ก่อนบอกว่าเสร็จ</code></div>
+    </div>
+
+    <div class="diagram glass reveal" role="img" aria-label="xeno-skills เป็นแกนกลาง — Delegate ไป OpenClink, Design ไป Clone Space">
+      <svg viewBox="0 0 1200 300">
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#131412"/></marker></defs>
+        <rect class="box hub" x="40" y="95" width="300" height="110" rx="10"/>
+        <text class="hubtext" x="64" y="140" font-size="30" font-family="Archivo,sans-serif" font-weight="700" letter-spacing="-1">xeno-skills</text>
+        <text class="hubtext" x="64" y="172" font-size="12" opacity=".7">the framework · 19 skills · hooks · T4</text>
+
+        <path class="arrow" d="M340 125 H 520"/>
+        <text class="sub" x="380" y="115">clink-* family</text>
+        <rect class="box" x="520" y="90" width="200" height="70" rx="8"/>
+        <text class="lbl" x="540" y="120" font-size="15" font-weight="500">Delegate</text>
+        <text class="sub" x="540" y="142">judgment · bounded work</text>
+        <path class="arrow" d="M720 125 H 900"/>
+        <text class="sub" x="760" y="115">MCP tool: clink</text>
+        <rect class="box" x="900" y="90" width="260" height="70" rx="8"/>
+        <text class="lbl" x="920" y="120" font-size="15" font-weight="500">OpenClink</text>
+        <text class="sub" x="920" y="142">codex · agy · cursor-agent · opencode</text>
+
+        <path class="arrow" d="M340 175 H 520"/>
+        <text class="sub" x="380" y="196">design family</text>
+        <rect class="box" x="520" y="180" width="200" height="70" rx="8"/>
+        <text class="lbl" x="540" y="210" font-size="15" font-weight="500">Design</text>
+        <text class="sub" x="540" y="232">setup → rules → psychology → audit</text>
+        <path class="arrow dev" d="M720 215 H 900"/>
+        <text class="sub" x="760" y="206">reference source</text>
+        <rect class="box" x="900" y="180" width="260" height="70" rx="8" stroke-dasharray="4 4"/>
+        <text class="lbl" x="920" y="210" font-size="15" font-weight="500">Clone Space</text>
+        <text class="devtag" x="1032" y="210" font-size="10" letter-spacing="1">(DEVELOPING)</text>
+        <text class="sub" x="920" y="232">capture → replay → extract behaviour</text>
+      </svg>
+    </div>
+    <p class="diagram__cap">mental model: xeno-skills คือแกน — openclink และ Clone Space เป็นเครื่องมือที่มันเรียก ไม่ใช่ 3 โปรเจกต์เท่ากัน · การ wire Clone Space เข้า design-setup ยังไม่เกิดจริงใน repo (grep 2026-09-02) จึงติด <span class="tag warn">developing</span></p>
+  </div>
+</section>
+
+<!-- 4 · Workflow -->
+<section class="section" id="workflow">
+  <div class="wrap g" data-title="Workflow">
+    <div class="section__head">
+      <span class="eyebrow">Workflow</span>
+      <h2>จาก brief ถึง merge — ใครถืออะไร</h2>
+      <p class="lede">brief §5 — สองคอลัมน์คือสองประเภทงานที่ master กระจายออกไป ส่วนล่างคือลำดับ gate ที่ master ต้องถือเอง</p>
+    </div>
+    <div class="flow">
+      <div class="flow__col glass reveal">
+        <h4>Judgment · convene</h4>
+        <ol>
+          <li>Human brief <small>ครั้งเดียว</small></li>
+          <li>ask-xeno / using-t4 <small>route</small></li>
+          <li>clink-brainstorm <small>≥3 lenses</small></li>
+          <li>clink-debug <small>fresh lineage</small></li>
+          <li>Master สังเคราะห์เอง <small>ไม่แปะคำตอบต่อกัน</small></li>
+        </ol>
+      </div>
+      <div class="flow__col glass reveal">
+        <h4>Bounded work · delegate</h4>
+        <ol>
+          <li>clink-subagents <small>Codex / Antigravity</small></li>
+          <li>leaf implementation <small>self-contained</small></li>
+          <li>Master verify ผลทุกชิ้น <small>diff · output · test</small></li>
+        </ol>
+      </div>
+      <div class="flow__col glass reveal" style="grid-column:1/-1">
+        <h4>Gates the master owns</h4>
+        <ol style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 24px">
+          <li>Grill <small>ถามจนชัด</small></li>
+          <li>Survey <small>ทุก change site</small></li>
+          <li>PRD → Issues <small>bilingual</small></li>
+          <li>TDD <small>red → green</small></li>
+          <li class="gate">Simplify</li>
+          <li class="gate">Review + Scrutinize</li>
+          <li class="gate">Security review</li>
+          <li class="gate">Verify</li>
+          <li>Pre-push guards <small>.githooks</small></li>
+          <li>CI <small>shared branch</small></li>
+          <li class="human">Human approval <small>judgment boundary</small></li>
+        </ol>
+      </div>
+    </div>
+    <p class="quote">Delegate the leaves, <i>own the tree.</i></p>
+  </div>
+</section>
+
+<!-- 5 · Skill catalog -->
+<section class="section" id="skills">
+  <div class="wrap g" data-title="Skill catalog">
+    <div class="section__head">
+      <span class="eyebrow">Skill catalog</span>
+      <h2>ทุก skill มีเรื่องต้นกำเนิด หรือไม่ก็บอกตรง ๆ ว่าไม่มี</h2>
+      <p class="lede">hover = สรุปสั้น · click = origin story เต็ม (problem → attempt → effectiveness พร้อม date และ source) — เนื้อหา popup ทุกอัน render ใน HTML ตั้งแต่ SSR</p>
+    </div>
+    <div class="catalog">
+      
+      <div class="family reveal">
+        <div class="family__head">
+          <span class="count">01</span>
+          <h3>Router</h3>
+          <p>จุดเข้าเดียว ชี้ไป family entry</p>
+        </div>
+        <div class="family__grid">
+        <button class="skill" data-skill="ask-xeno" aria-haspopup="dialog" aria-controls="story-ask-xeno">
+          <span class="skill__name">ask-xeno</span>
+          <span class="skill__tag is-rationale">rationale only</span>
+          <span class="skill__summary">เลือก family ให้ถูกก่อนเริ่มงาน — T4, clink, design หรือ coding</span>
+        </button>
+        </div>
+      </div>
+      <div class="family reveal">
+        <div class="family__head">
+          <span class="count">01</span>
+          <h3>Coding discipline</h3>
+          <p>กติกาการแก้โค้ดให้ surgical</p>
+        </div>
+        <div class="family__grid">
+        <button class="skill" data-skill="karpathy-guidelines" aria-haspopup="dialog" aria-controls="story-karpathy-guidelines">
+          <span class="skill__name">karpathy-guidelines</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">คิดก่อนเขียน ทำให้ง่าย แก้เฉพาะจุด และ verify ตาม goal</span>
+        </button>
+        </div>
+      </div>
+      <div class="family reveal">
+        <div class="family__head">
+          <span class="count">05</span>
+          <h3>Multi-agent · clink</h3>
+          <p>judgment กับ bounded work ผ่าน openclink</p>
+        </div>
+        <div class="family__grid">
+        <button class="skill" data-skill="using-clink" aria-haspopup="dialog" aria-controls="story-using-clink">
+          <span class="skill__name">using-clink</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">เกตตัดสินใจก่อนใช้ multi-agent — brainstorm, delegate หรือ debug</span>
+        </button>
+        <button class="skill" data-skill="clink-masteragent" aria-haspopup="dialog" aria-controls="story-clink-masteragent">
+          <span class="skill__name">clink-masteragent</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">master ถืออะไร delegate อะไรไม่ได้ และเลือก model จากคะแนนวัดจริง</span>
+        </button>
+        <button class="skill" data-skill="clink-brainstorm" aria-haspopup="dialog" aria-controls="story-clink-brainstorm">
+          <span class="skill__name">clink-brainstorm</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">ขอ judgment จากหลาย agent พร้อม challenge loop และ synthesis</span>
+        </button>
+        <button class="skill" data-skill="clink-subagents" aria-haspopup="dialog" aria-controls="story-clink-subagents">
+          <span class="skill__name">clink-subagents</span>
+          <span class="skill__tag is-measured">measured</span>
+          <span class="skill__summary">ส่งงานย่อยที่ bounded และตรวจสอบได้ให้ Codex / Antigravity</span>
+        </button>
+        <button class="skill" data-skill="clink-debug" aria-haspopup="dialog" aria-controls="story-clink-debug">
+          <span class="skill__name">clink-debug</span>
+          <span class="skill__tag is-rationale">rationale only</span>
+          <span class="skill__summary">สังเกต ตั้งสมมติฐาน falsify และ repair ด้วย fresh lineage</span>
+        </button>
+        </div>
+      </div>
+      <div class="family reveal">
+        <div class="family__head">
+          <span class="count">07</span>
+          <h3>T4 operating layer</h3>
+          <p>memory · workflow · records · AFK · bootstrap</p>
+        </div>
+        <div class="family__grid">
+        <button class="skill" data-skill="using-t4" aria-haspopup="dialog" aria-controls="story-using-t4">
+          <span class="skill__name">using-t4</span>
+          <span class="skill__tag is-measured">measured</span>
+          <span class="skill__summary">แผนที่หลักของ T4 — route ก่อนเริ่ม และ re-route ทุก phase boundary</span>
+        </button>
+        <button class="skill" data-skill="t4-project-bootstrap" aria-haspopup="dialog" aria-controls="story-t4-project-bootstrap">
+          <span class="skill__name">t4-project-bootstrap</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">ติดตั้ง operating layer เข้า repository ใหม่ แล้วพิสูจน์ว่าติดจริง</span>
+        </button>
+        <button class="skill" data-skill="t4-agent-memory" aria-haspopup="dialog" aria-controls="story-t4-agent-memory">
+          <span class="skill__name">t4-agent-memory</span>
+          <span class="skill__tag is-measured">measured</span>
+          <span class="skill__summary">memory, ledger, handoff และ retrieval ข้าม session และ compaction</span>
+        </button>
+        <button class="skill" data-skill="t4-dev-workflow" aria-haspopup="dialog" aria-controls="story-t4-dev-workflow">
+          <span class="skill__name">t4-dev-workflow</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">grill → survey → PRD → issues → TDD → review → verify → merge</span>
+        </button>
+        <button class="skill" data-skill="t4-engineering-records" aria-haspopup="dialog" aria-controls="story-t4-engineering-records">
+          <span class="skill__name">t4-engineering-records</span>
+          <span class="skill__tag is-inherit">inherits t4-dev-workflow</span>
+          <span class="skill__summary">post-mortem, ADR, system-impact register และ bug-case catalog</span>
+        </button>
+        <button class="skill" data-skill="t4-afk" aria-haspopup="dialog" aria-controls="story-t4-afk">
+          <span class="skill__name">t4-afk</span>
+          <span class="skill__tag is-measured">measured</span>
+          <span class="skill__summary">ทำงาน unattended ในขอบเขตที่อนุมัติ พร้อม gate ต่อ item ไม่ใช่ต่อ batch</span>
+        </button>
+        <button class="skill" data-skill="t4-bro" aria-haspopup="dialog" aria-controls="story-t4-bro">
+          <span class="skill__name">t4-bro</span>
+          <span class="skill__tag is-incident">incident · dated</span>
+          <span class="skill__summary">register ของทุกข้อความที่ developer อ่าน — ไทยตรง ๆ English เฉพาะที่จำเป็น</span>
+        </button>
+        </div>
+      </div>
+      <div class="family reveal">
+        <div class="family__head">
+          <span class="count">05</span>
+          <h3>Design</h3>
+          <p>setup → rules → psychology → audit</p>
+        </div>
+        <div class="family__grid">
+        <button class="skill" data-skill="using-design" aria-haspopup="dialog" aria-controls="story-using-design">
+          <span class="skill__name">using-design</span>
+          <span class="skill__tag is-inherit">inherits design-setup</span>
+          <span class="skill__summary">entry point ของ Web Design Suite — setup → rules → psychology → audit</span>
+        </button>
+        <button class="skill" data-skill="design-setup" aria-haspopup="dialog" aria-controls="story-design-setup">
+          <span class="skill__name">design-setup</span>
+          <span class="skill__tag is-rationale">rationale only</span>
+          <span class="skill__summary">hard decision gate 3 จุดก่อน promote งานออกแบบเป็น production</span>
+        </button>
+        <button class="skill" data-skill="design-rules" aria-haspopup="dialog" aria-controls="story-design-rules">
+          <span class="skill__name">design-rules</span>
+          <span class="skill__tag is-inherit">inherits design-setup</span>
+          <span class="skill__summary">Major Third 1.25, 60/30/10, 8pt grid, 12/8/4 columns, 4-state button</span>
+        </button>
+        <button class="skill" data-skill="design-psychology" aria-haspopup="dialog" aria-controls="story-design-psychology">
+          <span class="skill__name">design-psychology</span>
+          <span class="skill__tag is-inherit">inherits design-setup</span>
+          <span class="skill__summary">3-Brain persona, MAYA, cognitive chunking และ perceived value</span>
+        </button>
+        <button class="skill" data-skill="design-audit" aria-haspopup="dialog" aria-controls="story-design-audit">
+          <span class="skill__name">design-audit</span>
+          <span class="skill__tag is-inherit">inherits design-setup</span>
+          <span class="skill__summary">30-second first impression, LIFT, trust และ CTA</span>
+        </button>
+        </div>
+      </div>
+      <p class="catalog__note">
+        <span><b data-skill-count>19</b> skills — นับจาก <code>SKILL.md</code> จริงตอน build ไม่ hardcode</span>
+        <span><b>14</b> มี origin story ของตัวเอง</span>
+        <span><b>5</b> inherit จาก family</span>
+        <span>deep-link: <code>/?skill=&lt;slug&gt;</code></span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · Multi-agent -->
+<section class="section" id="multi-agent">
+  <div class="wrap g" data-title="Multi-agent">
+    <div class="section__head">
+      <span class="eyebrow">Multi-agent</span>
+      <h2>Judgment กับ execution เป็นคนละเครื่องมือ</h2>
+      <p class="lede">clink family คือชั้นตัดสินใจ ส่วน transport จริงที่อยู่ข้างหลังคือ openclink — MCP tool <code>clink</code> หนึ่งครั้งต่อ agent หนึ่งตัว</p>
+    </div>
+    <div class="rows narrow">
+      <div class="row"><div class="k"><a href="?skill=using-clink" data-skill-link="using-clink">using-clink</a></div><div class="v"><p>เกตก่อนใช้ multi-agent — ควร brainstorm, delegate หรือ debug ไม่ใช่ทุกงานต้องมีหลาย agent</p><p>resolve ชื่อ tool ทุกครั้งด้วย <code>claude mcp list</code> เพราะ prefix เป็นของเครื่อง ไม่ใช่ของ tool (#204)</p></div></div>
+      <div class="row"><div class="k"><a href="?skill=clink-brainstorm" data-skill-link="clink-brainstorm">clink-brainstorm</a></div><div class="v"><p>คณะกรรมการ ไม่ใช่ worker — คำถามเดียวกันไปหลาย agent อย่างน้อย 3 มุมมอง แยก fact / evidence / assumption / unknown</p><p>เมื่อทุก agent เห็นตรงกัน ต้องมี adversarial round — convergence ไม่ใช่ความถูกต้อง</p></div></div>
+      <div class="row"><div class="k"><a href="?skill=clink-subagents" data-skill-link="clink-subagents">clink-subagents</a></div><div class="v"><p>implementation, refactor, bulk transform, focused research, first draft ที่แยกขอบเขตได้</p><p>ห้าม delegate orchestration, architecture, integration, final verification, security review</p></div></div>
+      <div class="row"><div class="k"><a href="?skill=clink-debug" data-skill-link="clink-debug">clink-debug</a></div><div class="v"><p>สังเกต → สมมติฐาน → falsify → repair โดย falsify/repair ต้องเป็น fresh lineage เสมอ</p></div></div>
+      <div class="row"><div class="k"><a href="?skill=clink-masteragent" data-skill-link="clink-masteragent">clink-masteragent</a></div><div class="v"><p>master ถือ decomposition, architecture, integration, final verification, security boundary, bilingual output และ final recommendation</p><p>เลือก model จากตาราง score ในไฟล์ ไม่ใช่จากความจำ</p></div></div>
+    </div>
+    <aside class="side glass reveal">
+      <span class="eyebrow">Transport</span>
+      <h3>openclink</h3>
+      <p>สะพาน CLI-to-CLI ที่เปิด Codex, Antigravity, Cursor, OpenCode และ Claude Code เป็น subagent ในบริบทแยก แล้วส่งเฉพาะผลลัพธ์กลับ</p>
+      <ul>
+        <li>deep-scan 2026-08-13 · 605 claims</li>
+        <li>“silent failure is the house style”</li>
+        <li>child process ได้ os.environ เต็ม · ไม่มี cwd sandbox</li>
+      </ul>
+      <a class="cta" href="/ecosystem/openclink">อ่านหน้า openclink →</a>
+    </aside>
+  </div>
+</section>
+
+<!-- 7 · T4 standard -->
+<section class="section" id="t4-standard">
+  <div class="wrap g" data-title="T4 standard">
+    <div class="section__head">
+      <span class="eyebrow">T4 standard</span>
+      <h2>Operating layer ที่ repo ติดตั้งให้ตัวเอง</h2>
+      <p class="lede">ห้าชิ้นที่ทำงานร่วมกัน — และ repo ที่จัดส่งมาตรฐานต้องพิสูจน์ว่าตัวเองทำตามมาตรฐานที่จัดส่ง</p>
+    </div>
+    <div class="rows">
+      <div class="row reveal"><div class="k">Memory <a class="tag" href="?skill=t4-agent-memory" data-skill-link="t4-agent-memory">t4-agent-memory</a></div><div class="v"><p>Home → open-work ledger → issue → history เฉพาะที่ต้องใช้ — ไม่ยัดทั้งหมดลง context</p><p>7 ชั้น: team vault, personal memory, OPEN-WORK-LEDGER, DONE.md, skill-feedback issues, survey cache, Serena</p></div><div class="m">retrieval-first<br>freshness over authority</div></div>
+      <div class="row reveal"><div class="k">Workflow <a class="tag" href="?skill=t4-dev-workflow" data-skill-link="t4-dev-workflow">t4-dev-workflow</a></div><div class="v"><p>Intake → Grill → Survey → PRD → Issues → TDD → Simplify → Review → Verify → PR → Records</p><p>survey ต้องหาทุก occurrence, mirror, caller, test, doc, config — ไม่แก้ไฟล์แรกที่เจอแล้วหยุด</p></div><div class="m">PRD → issues → PR<br>ห้ามเปิด PR ที่ไม่มี issue</div></div>
+      <div class="row reveal"><div class="k">Records <a class="tag" href="?skill=t4-engineering-records" data-skill-link="t4-engineering-records">t4-engineering-records</a></div><div class="v"><p>post-mortem สำหรับ bug ที่แก้และ validate แล้ว · ADR สำหรับ decision ที่ย้อนกลับยาก · system-impact register · bug-case catalog</p></div><div class="m">file:line · commit SHA<br>validated-only</div></div>
+      <div class="row reveal"><div class="k">AFK <a class="tag" href="?skill=t4-afk" data-skill-link="t4-afk">t4-afk</a></div><div class="v"><p>ทำงาน unattended เฉพาะ implementation ใน issue ที่อนุมัติแล้วและ reversible</p><p>architecture, security, migration, irreversible action, ambiguity, scope expansion → stop-and-park</p></div><div class="m">gate ต่อ item<br>ไม่ใช่ต่อ batch</div></div>
+      <div class="row reveal"><div class="k">Bootstrap <a class="tag" href="?skill=t4-project-bootstrap" data-skill-link="t4-project-bootstrap">t4-project-bootstrap</a></div><div class="v"><p>ติดตั้ง CLAUDE.md, glossary, memory, hooks, .githooks, CI, records, tests เข้า repo ใหม่ในรอบเดียว</p><p>“a repo with the docs and no hooks looks bootstrapped” — ต้องพูดผลออกมาแม้ตอนผ่าน</p></div><div class="m">self-consistency test<br>8/19 labels (2026-08-04)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · Hooks -->
+<section class="section" id="hooks">
+  <div class="wrap g" data-title="Hooks">
+    <div class="section__head">
+      <span class="eyebrow">Hooks &amp; enforcement</span>
+      <h2>บันไดการบังคับใช้ และขั้นที่ hook ขึ้นไม่ถึง</h2>
+      <p class="lede">Prompts guide. Hooks enforce checkable actions. CI protects the shared branch. Humans own the judgment boundary.</p>
+    </div>
+    <table class="ladder reveal">
+      <thead><tr><th>Level</th><th>Mechanism</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>Soft</td><td>SessionStart</td><td>inject T4 directive (~1.3KB) และเปิด route ที่เกี่ยวข้อง</td></tr>
+        <tr><td>Soft</td><td>UserPromptSubmit</td><td>แจ้ง route และความต่างระหว่าง skill ที่ควรใช้กับที่ใช้จริง</td></tr>
+        <tr><td>Hard</td><td>PreToolUse · t4-gate</td><td>block PR ที่ไม่มี issue, <code>git reset --hard</code>, force push, branch deletion, <code>git clean -f</code>, merge ก่อน verify/review, GitHub mutation ผ่าน MCP</td></tr>
+        <tr><td>Agent-agnostic</td><td>.githooks/pre-push</td><td>ตรวจ issue reference, tree budget และ gate ledger — bypass ได้ด้วย <code>--no-verify</code></td></tr>
+        <tr class="strong"><td>Strongest</td><td>CI + branch rules</td><td>enforce check ในระบบกลาง — ต้องตรวจสถานะ live ก่อนประกาศว่าเปิดครบ</td></tr>
+        <tr class="human"><td>Human</td><td>Developer approval</td><td>ตัดสินใจเรื่องที่เครื่องตรวจไม่ได้</td></tr>
+      </tbody>
+    </table>
+    <aside class="limits reveal">
+      <h3>What hooks cannot see</h3>
+      <ul>
+        <li>คุณภาพของ judgment</li>
+        <li>ความลึกของ review หรือว่า TDD ทำจริง</li>
+        <li>local hook ถูก bypass ด้วย <code>--no-verify</code></li>
+        <li>regex ไม่ใช่ shell parser — nested command บางรูปแบบหลุด</li>
+        <li>“rule ถูกทำตามไหม” ไม่มี hook ใดตรวจได้ — วัดได้แค่ denominator</li>
+      </ul>
+      <p class="creed">Documented ≠ enforced. กฎสำคัญที่ไม่มี executable check คือ defect ของระบบ ไม่ใช่ความผิดของ agent</p>
+    </aside>
+  </div>
+</section>
+
+<!-- 9 · Evidence -->
+<section class="section" id="research">
+  <div class="wrap g" data-title="Evidence">
+    <div class="section__head">
+      <span class="eyebrow">Evidence</span>
+      <h2>ตัวเลขทุกตัวมีวันที่ วิธีวัด และข้อจำกัด</h2>
+      <p class="lede">ตัวเลขเป็น snapshot จากบันทึกการทำงานตามวันที่ระบุ ไม่ใช่ผลรันใหม่วันที่สร้างเว็บ — ไม่ใช้เป็น SLA</p>
+    </div>
+    <div class="evs">
+      <div class="evs__group">
+        <span class="evs__label">Context economics — inject น้อยลง compact ให้ถูกที่</span>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">8,974 → 1,368</span><span class="unit">bytes / injection</span></div>
+          <h3 class="ev__claim">Routing แบบ retrieval-first ลด context ที่ inject</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>วัดขนาด skill map ที่ inject ต่อครั้ง ก่อนและหลังเปลี่ยนเป็น routing</dd></div>
+            <div><dt>date</dt><dd>2026-08 (#182)</dd></div>
+            <div><dt>source</dt><dd><code>using-t4 MAINTAINERS note</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>ประหยัด ~30,424 bytes ใน session ที่มี 4 injection — ไม่มีข้อมูลว่า verbatim inject เคยทำ session พังกี่ครั้ง</dd></div>
+          </dl>
+        </article>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">113</span><span class="unit">compactions · 10 projects</span></div>
+          <h3 class="ev__claim">Compaction ช่วยเฉพาะ context ขนาดใหญ่</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>median ก่อน compact ~719K, reduction ~85%, ต่ำกว่า 150K benefit ~0%</dd></div>
+            <div><dt>date</dt><dd>2026-08-21</dd></div>
+            <div><dt>source</dt><dd><code>docs/research/2026-08-21-compaction-yield.md</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>13/113 ครั้ง context ใหญ่ขึ้นหลัง compact — T4-Compact ยัง experimental</dd></div>
+          </dl>
+        </article>
+      </div>
+      <div class="evs__group">
+        <span class="evs__label">Gates — test และ review ที่ผ่านแล้วยังพลาด</span>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">94</span><span class="unit">assertions ผ่าน · 1 defect หลุด</span></div>
+          <h3 class="ev__claim">Test ที่ผ่านไม่ได้แปลว่าไม่มี defect</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>gate suite ผ่านทั้งหมด แต่ reviewer พบ raw control bytes จาก generator</dd></div>
+            <div><dt>date</dt><dd>2026-08</dd></div>
+            <div><dt>source</dt><dd><code>brief §9</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>test ยืนยันเฉพาะ contract ที่ระบุไว้ ไม่ใช่ว่าระบบไม่มีปัญหาอื่น</dd></div>
+          </dl>
+        </article>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">3 / 62</span><span class="unit">defects committed / commits</span></div>
+          <h3 class="ev__claim">Gate ที่เลื่อนไปท้าย batch เท่ากับไม่ได้ทำ</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>batch AFK ที่รวบ review ครั้งเดียวท้าย batch</dd></div>
+            <div><dt>date</dt><dd>ไม่ระบุ (Measured)</dd></div>
+            <div><dt>source</dt><dd><code>t4-afk SKILL.md</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>ไม่มี denominator ว่า batch แบบนี้เกิดกี่ครั้ง</dd></div>
+          </dl>
+        </article>
+      </div>
+      <div class="evs__group">
+        <span class="evs__label">Rules — กฎที่ไม่มี moment ให้ fire</span>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">16 / 16</span><span class="unit">feedback issues / PRs</span></div>
+          <h3 class="ev__claim">กฎไม่ได้ผิดเพราะเขียนไม่ชัด แต่เพราะไม่มี moment ให้ fire</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>ไล่ปิด skill-feedback queue แล้วจัดกลุ่มสาเหตุ</dd></div>
+            <div><dt>date</dt><dd>2026-08</dd></div>
+            <div><dt>source</dt><dd><code>brief §9</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>เป็นการจัดกลุ่มเชิงคุณภาพ ไม่ใช่การทดลองควบคุม</dd></div>
+          </dl>
+        </article>
+        <article class="ev">
+          <div class="ev__metric"><span class="num">11 / 52</span><span class="unit">Skill calls ที่ถูก log</span></div>
+          <h3 class="ev__claim">Skill log หายเงียบเมื่อ branch ไม่มี hook</h3>
+          <dl class="ev__meta">
+            <div><dt>method</dt><dd>นับจาก session เดียว เทียบ log กับ transcript</dd></div>
+            <div><dt>date</dt><dd>2026-08-14 → 19</dd></div>
+            <div><dt>source</dt><dd><code>t4-agent-memory SKILL.md</code></dd></div>
+            <div class="ev__limit"><dt>limitation</dt><dd>การขาดหายคือ unknown ไม่ใช่ no — ต้องเช็คว่า hook มีอยู่ในช่วงนั้น</dd></div>
+          </dl>
+        </article>
+      </div>
+    </div>
+    <p class="diagram__cap" style="margin-top:24px">T4-Compact (supervisor, t4-compact-call, compaction policy) มีสถานะ <span class="tag">research-backed</span> <span class="tag warn">experimental</span> — ไม่ใช่ production feature</p>
+  </div>
+</section>
+
+<!-- 10 · Built on -->
+<section class="section" id="built-on">
+  <div class="wrap g" data-title="Built on">
+    <div class="section__head">
+      <span class="eyebrow">Built on</span>
+      <h2>เครื่องมือสองตัวที่ xeno-skills เรียกใช้</h2>
+      <p class="lede">ทั้งคู่มี repo และผู้ใช้ของตัวเอง แต่บนเว็บนี้มีบทบาทเดียว: สิ่งที่ skill family เรียก — ทางเข้าเดียวไป <code>/ecosystem/*</code></p>
+    </div>
+    <div class="tools">
+      <a class="tool glass reveal" href="/ecosystem/openclink">
+        <div class="tool__top"><span class="role">transport · clink-* family</span><span class="tag">Apache-2.0 · v9.8.2</span></div>
+        <h3>openclink</h3>
+        <p>MCP server ที่เปิด external CLI agent เป็น subagent ในบริบทแยก — Antigravity ต้องรันผ่าน Windows ConPTY จริงเพราะ plain pipe คืน stdout ว่างพร้อม exit 0</p>
+        <div class="facts">
+          <div><b>605</b><span>claims ใน self deep-scan<br>2026-08-13</span></div>
+          <div><b>11 / 27</b><span>ข้อสรุปของตัวเองที่ถูกหักล้าง<br>(41%)</span></div>
+        </div>
+        <div class="flag">“silent failure is the house style” — degrade เงียบทุกชั้น non-zero exit เคยรายงานเป็น success; child process ได้ <code>os.environ</code> เต็ม ไม่มี <code>cwd</code> sandbox</div>
+        <span class="go">origin story · deep-scan findings · โยงกลับ #multi-agent →</span>
+      </a>
+      <a class="tool glass reveal" href="/ecosystem/clone-space">
+        <div class="tool__top"><span class="role">reference source · design family</span><span class="tag warn">developing · alpha</span></div>
+        <h3>Clone Space</h3>
+        <p>archive หน้าเว็บจริงให้ replay offline โดย motion ยังทำงาน แล้วบอกว่าบรรทัดไหนขับการเคลื่อนไหวนั้น — agent อ่าน mechanism จริงก่อนออกแบบ</p>
+        <div class="facts">
+          <div><b>82,613</b><span>ตัวอักษร GLSL ที่จับได้บน chaingpt.org<br>9 canvas · 1,510 listeners</span></div>
+          <div><b>0%</b><span>listener_execution coverage<br>ในทุก verdict ที่บันทึก</span></div>
+        </div>
+        <div class="flag">framing “anti-AI-slop” มาจากเจ้าของโปรเจกต์ ไม่ใช่คำที่ repo ประกาศเอง — repo นิยามตัวเองว่า “replay offline with real fidelity”</div>
+        <span class="go">origin story · capture/replay · โยงกลับ #skills →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · Install -->
+<section class="section" id="install" style="padding-top:calc(var(--s-12) + var(--s-6))">
+  <div class="wrap g" data-title="Install">
+    <div class="section__head">
+      <span class="eyebrow">Install</span>
+      <h2>สามทาง สามระดับ</h2>
+      <p class="lede">hook ทำงานเฉพาะ repo ที่มี <code>.claude/t4.json</code> — ติดตั้ง plugin แล้วยังไม่บังคับอะไรจนกว่าจะ opt-in</p>
+    </div>
+    <div class="installs">
+      <div class="install reveal"><h3>skills installer</h3><p>ติดตั้ง skill ตามที่ต้องการ ไม่มี hook</p><pre>npx skills add xenodeve/xeno-skills
+npx skills add xenodeve/xeno-skills \
+  --skill clink-brainstorm</pre></div>
+      <div class="install reveal"><h3>plugin</h3><p>skill ทั้งชุด + hook integration</p><pre>/plugin marketplace add xeno-skills
+/plugin install xeno-skills</pre></div>
+      <div class="install reveal"><h3>bootstrap</h3><p>นำ T4 operating layer เข้า repo ที่ต้องการมาตรฐานแบบ self-contained</p><pre>/t4-project-bootstrap
+# writes CLAUDE.md, docs/agents,
+# hooks, .githooks, .claude/t4.json</pre></div>
+      <p class="install__note">clink family ต้องมี PAL/openclink หรือ MCP ที่เกี่ยวข้อง — resolve ชื่อ server ด้วย <code>claude mcp list</code> ก่อนเรียกทุกครั้ง</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · Blog teaser -->
+<section class="section" id="blog">
+  <div class="wrap g" data-title="Blog">
+    <div class="section__head">
+      <span class="eyebrow">Blog</span>
+      <h2>Case studies, decisions, failures</h2>
+      <p class="lede"><a href="/blog">ทั้งหมด →</a></p>
+    </div>
+    <div class="posts">
+      <a class="post reveal" href="/blog/94-assertion-gate"><span class="eyebrow plain">Evidence and failure · 2026-08</span><h3>The 94-assertion gate that still missed raw control bytes</h3><p>test ยืนยันเฉพาะ contract ที่ระบุไว้ ไม่ได้ยืนยันว่าระบบไม่มีปัญหาอื่น</p></a>
+      <a class="post reveal" href="/blog/113-compactions"><span class="eyebrow plain">Context economics · 2026-08-21</span><h3>What 113 real compactions revealed</h3><p>ทำไม cache_read ไม่ใช่ context size และทำไม local model กลับด้านเศรษฐศาสตร์ของ compaction</p></a>
+      <a class="post reveal" href="/blog/silent-failure-house-style"><span class="eyebrow plain">Multi-agent · 2026-08-13</span><h3>Silent failure is the house style</h3><p>บทเรียนจาก deep-scan 605 claims ของ openclink ที่หักล้างข้อสรุปของตัวเอง 41%</p></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<footer class="footer">
+  <div class="wrap g">
+    <div><b>xeno-skills</b><a href="https://github.com/xenodeve/xeno-skills">GitHub</a><a href="#skills">Skills</a><a href="#install">Install</a></div>
+    <div><b>Ecosystem</b><a href="/ecosystem/openclink">openclink</a><a href="/ecosystem/clone-space">Clone Space</a><a href="/#built-on">/ecosystem → 308</a></div>
+    <div><b>Records</b><a href="#research">Evidence</a><a href="/blog">Blog</a><a href="#hooks">Limits</a></div>
+    <div><b>Snapshot</b>2026-09-02 · plugin 0.1.0<br>mock: Fable 5.1 · Editorial × Swiss × Liquid Glass × Visible Grid</div>
+  </div>
+</footer>
+
+<!-- origin-story popups: SSR'd, toggled by ?skill=<slug> (spec §4) -->
+
+    <dialog class="popup glass" id="story-ask-xeno" data-slug="ask-xeno" aria-labelledby="story-ask-xeno-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Router · origin story</span>
+          <h3 id="story-ask-xeno-title">ask-xeno</h3>
+          <p class="popup__summary">เลือก family ให้ถูกก่อนเริ่มงาน — T4, clink, design หรือ coding</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>ถ้า router เขียนรายละเอียดของแต่ละ family ซ้ำไว้ในตัว เนื้อหาจะ drift ออกจาก family entry ตัวจริง และ agent เสี่ยงเรียก skill ผิดเพราะ “มันคือตัวที่ใกล้ที่สุด”</dd></div>
+        <div><dt>Attempt</dt><dd>ทำไฟล์ให้บางที่สุด — ตาราง 4 แถวชี้ไป using-t4 / using-clink / using-design / karpathy-guidelines และมีทางออกชัดเจนเมื่อไม่มี skill ไหนตรง</dd></div>
+        <div><dt>Effectiveness</dt><dd>ยังไม่มี evidence เชิงตัวเลขใน SKILL.md เอง ตัวเลข contract test 2-hop + byte budget อยู่ใน brief เท่านั้น ต้องยืนยันกับ tests/ จริงก่อนอ้าง</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ</span>
+        <span><b>source</b> <code>skills/ask-xeno/SKILL.md</code></span>
+        <span><b>evidence</b> rationale only</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=ask-xeno</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-karpathy-guidelines" data-slug="karpathy-guidelines" aria-labelledby="story-karpathy-guidelines-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Coding discipline · origin story</span>
+          <h3 id="story-karpathy-guidelines-title">karpathy-guidelines</h3>
+          <p class="popup__summary">คิดก่อนเขียน ทำให้ง่าย แก้เฉพาะจุด และ verify ตาม goal</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>ไฟล์ .pyc สองไฟล์ขี่อยู่บน branch ราว 20 commits เพราะ importlib cache ไว้ข้าง source — ไม่มีใน edit/plan/test ใด เห็นแค่ใน git status ที่ถูกอ่านผิดเป็น “ไฟล์ที่ฉันแก้” และอีกเคส agent เติม entry ที่ไม่ได้ขอ แล้ว “เปิดเผย” ใน PR body ราวกับได้รับอนุญาต</dd></div>
+        <div><dt>Attempt</dt><dd>เพิ่มกฎ “เห็นอะไรไม่ครบ ให้บอก ไม่ต้องทำให้ครบ”, ทุกไฟล์ที่ stage ต้อง trace กลับไปยัง request, และเตือนว่า git add -A stage สิ่งที่ tool เขียนเท่ากับสิ่งที่ user เขียน</dd></div>
+        <div><dt>Effectiveness</dt><dd>ไฟล์ยอมรับเองว่ากฎยังไม่สมบูรณ์ — incident ถูกกำกับว่า “Measured” แต่ไม่มีวันที่และไม่มี denominator กลไกเก็บหลักฐานต่อคือ skill-feedback issue ท้ายทุก session</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ (Measured)</span>
+        <span><b>source</b> <code>skills/karpathy-guidelines/SKILL.md §3</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=karpathy-guidelines</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-using-clink" data-slug="using-clink" aria-labelledby="story-using-clink-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Multi-agent · clink · origin story</span>
+          <h3 id="story-using-clink-title">using-clink</h3>
+          <p class="popup__summary">เกตตัดสินใจก่อนใช้ multi-agent — brainstorm, delegate หรือ debug</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>ชื่อ tool จริงคือ mcp__&lt;server&gt;__clink โดย &lt;server&gt; เป็น key ที่แต่ละเครื่องตั้งเอง วันที่ 2026-08-20 เครื่องนี้รายงาน pal: openclink — ถ้า agent “แก้” ชื่อเป็น mcp__openclink__clink จะ resolve ไม่ได้ และพังพร้อมกันทั้ง 4 skill ในตระกูล (issue #204)</dd></div>
+        <div><dt>Attempt</dt><dd>resolve prefix ก่อนเรียกทุกครั้งด้วย claude mcp list แทนการเดา และให้ enforcement layer ใช้ regex ^mcp__[A-Za-z0-9_.-]+__clink$ ที่ทนต่อ rename</dd></div>
+        <div><dt>Effectiveness</dt><dd>incident #204 เป็นหลักฐานเชิงประจักษ์วันที่ชัด ส่วน fix (PR #206) ยอมรับว่า “both spellings are wrong on some machine, so the fix is to stop spelling it” ยังไม่มีตัวเลขว่าลดอัตราล้มเหลวเท่าไร</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-20</span>
+        <span><b>source</b> <code>skills/multi-agent/using-clink/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=using-clink</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-clink-masteragent" data-slug="clink-masteragent" aria-labelledby="story-clink-masteragent-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Multi-agent · clink · origin story</span>
+          <h3 id="story-clink-masteragent-title">clink-masteragent</h3>
+          <p class="popup__summary">master ถืออะไร delegate อะไรไม่ได้ และเลือก model จากคะแนนวัดจริง</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>orchestrator เลือก model สำหรับ review panel จากความจำเรื่องความล้มเหลวครั้งก่อน ไม่ใช่จาก score — ตรวจย้อนหลังพบว่าโมเดลที่เลือกแพ้ 3.6 คะแนน composite และเกือบ 2 เท่าใน agentic ability ซึ่งเป็นแกนที่งานต้องการจริง</dd></div>
+        <div><dt>Attempt</dt><dd>ใส่ตาราง score 84 แถว (model × effort) ไว้ในไฟล์ skill โดยตรง — “Falling from a recommendation to the evidence is a scroll, not a decision” และห้าม rank ด้วย composite อย่างเดียว (มีแค่ 34% ที่วัดแบบ tool-in-the-loop)</dd></div>
+        <div><dt>Effectiveness</dt><dd>2026-08-05: worker เดียวกันคืน test ดีจาก code leaf แต่ prose leaf คืน assertion 11 ข้อที่ grep ประโยคซึ่ง worker แต่งขึ้นเอง; audit detector รุ่นแรก flag 30/32 suites ทั้งที่ตัวเลขจริงคือ 11 — case list ที่จะทำให้เป็นระบบยัง “Not yet written” (#74)</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-05</span>
+        <span><b>source</b> <code>skills/multi-agent/clink-masteragent/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=clink-masteragent</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-clink-brainstorm" data-slug="clink-brainstorm" aria-labelledby="story-clink-brainstorm-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Multi-agent · clink · origin story</span>
+          <h3 id="story-clink-brainstorm-title">clink-brainstorm</h3>
+          <p class="popup__summary">ขอ judgment จากหลาย agent พร้อม challenge loop และ synthesis</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>agent 3 ตัวจาก 3 ตระกูลโมเดลลงเอยที่คำว่า “displacement” เหมือนกัน เพราะ prompt เสนอคำตอบไว้ในตัว (2026-08-11) — พอรัน adversarial round ทั้งสามกลับคำ ตัวหนึ่งเขียนว่า self_critique: “I walked into the offered displacement slot” และ 2026-08-13 panel ตีความคำว่า “rules” ผิดทางแบบ unanimous</dd></div>
+        <div><dt>Attempt</dt><dd>เพิ่ม prompt audit ก่อนยิง (prompt เสนอคำตอบไหม, label ตัวเลือกไหม, บอกจุดยืนผู้ถามไหม) และบังคับ adversarial round หลัง agent เห็นตรงกัน โดย tailor ตาม cognitive lens ของแต่ละตัว</dd></div>
+        <div><dt>Effectiveness</dt><dd>incident ทั้งสามมีวันที่ชัดในไฟล์ ไฟล์สรุปเองว่า “The tell is that there is no tell” ยังไม่มีตัวเลขอัตราสำเร็จของ prompt-audit เพราะเพิ่งเพิ่มหลัง incident</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-11 · 2026-08-13</span>
+        <span><b>source</b> <code>skills/multi-agent/clink-brainstorm/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=clink-brainstorm</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-clink-subagents" data-slug="clink-subagents" aria-labelledby="story-clink-subagents-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Multi-agent · clink · origin story</span>
+          <h3 id="story-clink-subagents-title">clink-subagents</h3>
+          <p class="popup__summary">ส่งงานย่อยที่ bounded และตรวจสอบได้ให้ Codex / Antigravity</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>2026-08-11 orchestrator implement clink client ทั้งชุด (parser, agent, config, discovery, doc 4 ไฟล์) โดยไม่ delegate อะไรเลย ทั้งที่ CLAUDE.md เปิดด้วย “delegation is the default” — ไฟล์สรุปว่า “the selection step did not run and conclude keep; it never ran”</dd></div>
+        <div><dt>Attempt</dt><dd>ก่อน edit แรกของงานที่มีมากกว่า 1 leaf ต้อง name ทุก leaf แล้วบันทึก delegate/keep พร้อมเหตุผล บรรทัดเดียวต่อ leaf และมีสูตร token economics เทียบ “อ่าน+คิดเอง” กับ “prompt+ผลลัพธ์+verification”</dd></div>
+        <div><dt>Effectiveness</dt><dd>วัดจริงหลายชุด: 2026-07-16 สรุปงาน 30,696 ตัวอักษรเองใช้ ~8.5k token เทียบ delegate 240–464; 2026-07-31 latency codex 401s/529s, cursor 108s, antigravity 55s (#55); difficulty ladder R0–R3 — qwen แตกที่ R2, antigravity ที่ R3, codex ผ่านหมด</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-07-16 → 2026-08-11</span>
+        <span><b>source</b> <code>skills/multi-agent/clink-subagents/SKILL.md</code></span>
+        <span><b>evidence</b> measured</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=clink-subagents</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-clink-debug" data-slug="clink-debug" aria-labelledby="story-clink-debug-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Multi-agent · clink · origin story</span>
+          <h3 id="story-clink-debug-title">clink-debug</h3>
+          <p class="popup__summary">สังเกต ตั้งสมมติฐาน falsify และ repair ด้วย fresh lineage</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>“hypothesis laundering” — worker เสนอ hypothesis ที่ดูสมเหตุสมผล ถูกส่งผ่าน review ที่ไม่ independent จริง แล้วกลับมาเป็น panel-backed certainty ซึ่งแย่กว่าให้ agent เดียว debug เพราะ “the ceremony manufactures confidence that nothing in the process earned”</dd></div>
+        <div><dt>Attempt</dt><dd>seat rule ตายตัว — Promote/Decide/Close เป็นของ orchestrator เท่านั้น, Falsify/Repair ต้องใช้ fresh lineage (ห้าม continuation_id เดิม ควรเปลี่ยน client) และห้ามผู้เสนอ hypothesis falsify ของตัวเอง</dd></div>
+        <div><dt>Effectiveness</dt><dd>ยังไม่มี incident วันที่ชัดหรือตัวเลขในไฟล์นี้เอง — มีแค่ rationale เชิงกลไก ต่างจาก clink-masteragent และ clink-brainstorm ในตระกูลเดียวกัน</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ</span>
+        <span><b>source</b> <code>skills/multi-agent/clink-debug/SKILL.md</code></span>
+        <span><b>evidence</b> rationale only</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=clink-debug</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-using-t4" data-slug="using-t4" aria-labelledby="story-using-t4-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-using-t4-title">using-t4</h3>
+          <p class="popup__summary">แผนที่หลักของ T4 — route ก่อนเริ่ม และ re-route ทุก phase boundary</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>ไฟล์นี้เคยถูก inject verbatim ทุก session start และทุกครั้งที่ compact ด้วยขนาด 8,974 bytes เทียบ cap 9,000 — เหลือ 26 bytes ก่อนเกิน budget และการ trim เสี่ยงตัด 5 phrase ที่ contract test บังคับไว้</dd></div>
+        <div><dt>Attempt</dt><dd>ย้าย mechanism การ inject ไปที่ hooks/t4-directive.md (~1.3KB) ที่คัดมาแค่ 5 phrase ส่วน SKILL.md เปลี่ยนเป็นไฟล์ที่ load เมื่อ route เท่านั้น (#182) มี test-dispatcher-content.sh คุ้มครอง</dd></div>
+        <div><dt>Effectiveness</dt><dd>8,974B/9,000B เป็นตัวเลขจริงในไฟล์ และมี contract test คุ้มครองเนื้อหาจริง — แต่ไม่มีข้อมูลว่า verbatim inject เคยทำให้ session พังกี่ครั้งก่อนแก้</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ (#182)</span>
+        <span><b>source</b> <code>skills/t4/using-t4/SKILL.md</code></span>
+        <span><b>evidence</b> measured</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=using-t4</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-project-bootstrap" data-slug="t4-project-bootstrap" aria-labelledby="story-t4-project-bootstrap-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-project-bootstrap-title">t4-project-bootstrap</h3>
+          <p class="popup__summary">ติดตั้ง operating layer เข้า repository ใหม่ แล้วพิสูจน์ว่าติดจริง</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>#244 /ask-xeno ถูกเรียกแต่ไม่เคยเข้า using-t4 จริง เอกสารหลายพันคำถูกส่งโดยไม่โหลด t4-bro; #84 executable ที่เรียกด้วย absolute path หลุดจาก PreToolUse gate; #129 agent เขียนว่า tool “never installed” ทั้งที่ bun อยู่ที่ ~/.bun/bin แค่ไม่อยู่บน PATH; 2026-08-04 repo ที่ bootstrap แล้วมีแค่ 8/19 label</dd></div>
+        <div><dt>Attempt</dt><dd>3 prerequisite ก่อนเริ่ม (โหลด discipline ก่อนอ่าน repo, resolve tool ด้วย absolute path ก่อนสรุปว่าไม่มี, ถาม developer เรื่อง companion ecosystem) และ step 11 “พูดผลออกมาแม้ตอนผ่าน” เพราะ “a repo with the docs and no hooks looks bootstrapped”</dd></div>
+        <div><dt>Effectiveness</dt><dd>incident ทุกรายการมีเลข issue หรือวันที่ในไฟล์ แต่ยังไม่มีตัวเลขว่า checklist ใหม่ป้องกันการเกิดซ้ำได้กี่ %</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-04 · #244 #84 #129</span>
+        <span><b>source</b> <code>skills/t4/t4-project-bootstrap/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=t4-project-bootstrap</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-agent-memory" data-slug="t4-agent-memory" aria-labelledby="story-t4-agent-memory-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-agent-memory-title">t4-agent-memory</h3>
+          <p class="popup__summary">memory, ledger, handoff และ retrieval ข้าม session และ compaction</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>จาก 52 ครั้งที่ Skill tool ถูกเรียกใน session เดียว log บันทึกได้แค่ 11 — ช่องว่างล้อมด้วย git switch สองคำสั่ง (branch ที่ cut จาก base เก่าไม่มี hook) และมีสมมติฐานผิด 2 ข้อก่อนเจอสาเหตุจริง</dd></div>
+        <div><dt>Attempt</dt><dd>แยกให้ชัดว่าการขาดหายใน log คือ unknown ไม่ใช่ no จนกว่าจะเช็คว่า hook มีอยู่ในช่วงนั้น และแยก “denominator” (hook ตรวจได้) จาก “rule ทำตามจริงไหม” (ไม่มี hook ใดตรวจได้)</dd></div>
+        <div><dt>Effectiveness</dt><dd>3-session tracking: 2026-08-14 ไม่มีทั้ง tracker issue และ note; 08-17 มี issue; 08-19 มีทั้งคู่ — แต่ไฟล์ยอมรับว่า “The third row is not a success” เพราะรายงานเกิดจากสิ่งภายนอกที่ทำให้ session ไม่จบ</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-14 → 2026-08-19</span>
+        <span><b>source</b> <code>skills/t4/t4-agent-memory/SKILL.md</code></span>
+        <span><b>evidence</b> measured</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=t4-agent-memory</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-dev-workflow" data-slug="t4-dev-workflow" aria-labelledby="story-t4-dev-workflow-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-dev-workflow-title">t4-dev-workflow</h3>
+          <p class="popup__summary">grill → survey → PRD → issues → TDD → review → verify → merge</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>#78 ข้าม survey ก่อนวางแผน ทำให้ dispatcher โต 9,033B เทียบ cap 9,000B ขณะที่ #86 (วันเดียวกัน) survey ก่อนจึงไม่ชน; 2026-08-19 gh issue close ยิงสำเร็จสองครั้งขณะ PR ยังไม่ merge เพราะ chain ด้วย &&; 2026-08-11 merge PR แม่ด้วย --delete-branch ทำให้ PR ลูกถูกปิดแบบกู้ไม่ได้</dd></div>
+        <div><dt>Attempt</dt><dd>survey เปลี่ยนจาก phase-boundary trigger เป็น action trigger; precondition ต้องอ่านเป็น step แยก ไม่ chain ด้วย &&; retarget child PR ไป main ก่อน merge parent เสมอ; ถามว่าตัวเลขวัดหน่วยอะไรก่อนใช้ตัดสินใจ</dd></div>
+        <div><dt>Effectiveness</dt><dd>skill ที่มี incident วันที่ระบุมากที่สุดใน 19 ตัว (#242 2026-08-18: skill ที่ disable-model-invocation หายจาก listing เงียบ ๆ) ไฟล์สรุปว่า “A permissive guard beside a strict rule relaxes the strict rule in practice” ยังไม่มีอัตราสำเร็จของกฎใหม่</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-11 → 2026-08-19</span>
+        <span><b>source</b> <code>skills/t4/t4-dev-workflow/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=t4-dev-workflow</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-engineering-records" data-slug="t4-engineering-records" aria-labelledby="story-t4-engineering-records-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-engineering-records-title">t4-engineering-records</h3>
+          <p class="popup__summary">post-mortem, ADR, system-impact register และ bug-case catalog</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <p class="story__inherit">skill นี้ไม่มี origin story ของตัวเอง — inherit จาก
+        <a href="?skill=t4-dev-workflow" data-skill-link="t4-dev-workflow">t4-dev-workflow</a></p>
+      <p class="story__inherit-note">ไฟล์นี้เป็นชุด template เลือกประเภท record ไม่มี incident ของตัวเอง เหตุผลเรื่อง file:line, commit SHA, validated-only มาจาก incident ใน t4-dev-workflow §“No verdict before evidence”</p>
+      <footer class="story__meta"><span><b>source</b> <code>skills/t4/t4-engineering-records/SKILL.md</code></span></footer>
+        <p class="popup__link"><code>/?skill=t4-engineering-records</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-afk" data-slug="t4-afk" aria-labelledby="story-t4-afk-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-afk-title">t4-afk</h3>
+          <p class="popup__summary">ทำงาน unattended ในขอบเขตที่อนุมัติ พร้อม gate ต่อ item ไม่ใช่ต่อ batch</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>batch ที่เลื่อน /code-review และ /scrutinize ไปรวบท้ายกับ 62 commits พบ defect 3 ตัวที่ commit ไปแล้วทั้งหมด — หนึ่งในนั้นเขียนโดย session เดียวกันไม่กี่ชั่วโมงก่อน และ 2 ใน 3 fix ต้องเขียนหลัง branch merge</dd></div>
+        <div><dt>Attempt</dt><dd>เปลี่ยน trigger จาก phase boundary เป็น cue ที่จับได้ — “the first item that changes a file” และบังคับ digest ท้าย batch enumerate ทุก gate เป็น ran / not-run / n-a ต่อ item</dd></div>
+        <div><dt>Effectiveness</dt><dd>มีตัวเลข (3 defects / 62 commits) แต่ไม่มีวันที่และไม่มี denominator ว่า batch แบบนี้เกิดกี่ครั้ง</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ (Measured)</span>
+        <span><b>source</b> <code>skills/t4/t4-afk/SKILL.md</code></span>
+        <span><b>evidence</b> measured</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=t4-afk</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-t4-bro" data-slug="t4-bro" aria-labelledby="story-t4-bro-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">T4 operating layer · origin story</span>
+          <h3 id="story-t4-bro-title">t4-bro</h3>
+          <p class="popup__summary">register ของทุกข้อความที่ developer อ่าน — ไทยตรง ๆ English เฉพาะที่จำเป็น</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>2026-08-14 แม้ skill นี้โหลดอยู่ คำอธิบายออกแบบชุดยาวถูกส่งเป็นภาษาอังกฤษ developer ต้องพิมพ์ “คุยเป็นภาษาไทย” สองครั้งและเรียก /t4-bro ครั้งที่สาม — “it was never applied, which is worse, because there is no decision to review”</dd></div>
+        <div><dt>Attempt</dt><dd>ระบุ trigger ที่จับได้จริง — ข้อความ prose แรกหลังช่วง tool work ต่อเนื่อง (จุดที่เพิ่งอ่าน output อังกฤษมา) และตาราง before/after จากประโยคจริงใน session</dd></div>
+        <div><dt>Effectiveness</dt><dd>incident วันที่ชัดที่สุดในกลุ่ม (developer แก้ 2 ครั้ง + เรียก skill 1 ครั้งใน session เดียว) ไฟล์สรุป “A rule that is unambiguous and still not applied has a trigger problem, not a clarity problem” — ยังไม่รู้ว่า trigger ใหม่ป้องกันซ้ำได้จริงไหม</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> 2026-08-14 · 2026-08-12 (PR #140)</span>
+        <span><b>source</b> <code>skills/t4/t4-bro/SKILL.md</code></span>
+        <span><b>evidence</b> incident · dated</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=t4-bro</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-using-design" data-slug="using-design" aria-labelledby="story-using-design-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Design · origin story</span>
+          <h3 id="story-using-design-title">using-design</h3>
+          <p class="popup__summary">entry point ของ Web Design Suite — setup → rules → psychology → audit</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <p class="story__inherit">skill นี้ไม่มี origin story ของตัวเอง — inherit จาก
+        <a href="?skill=design-setup" data-skill-link="design-setup">design-setup</a></p>
+      <p class="story__inherit-note">เป็น orchestrator ของ 4 sub-skill ไม่มี incident ของตัวเอง กลไกบันทึก feedback ท้าย session ยืมมาจาก t4-agent-memory ตรง ๆ</p>
+      <footer class="story__meta"><span><b>source</b> <code>skills/design/using-design/SKILL.md</code></span></footer>
+        <p class="popup__link"><code>/?skill=using-design</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-design-setup" data-slug="design-setup" aria-labelledby="story-design-setup-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Design · origin story</span>
+          <h3 id="story-design-setup-title">design-setup</h3>
+          <p class="popup__summary">hard decision gate 3 จุดก่อน promote งานออกแบบเป็น production</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <dl class="story">
+        <div><dt>Problem</dt><dd>output design จาก AI วนแพทเทิร์นเดิม — “generic dark slate modes, cyan/purple gradients, default Inter fonts, 3D blobs, uniform 3-column cards” เพราะ “AI has no inherent taste and defaults to regression to the mean”</dd></div>
+        <div><dt>Attempt</dt><dd>3-phase build sequence พร้อม Hard Decision Gate ที่ agent ห้ามข้าม (เลือก 1/5 aesthetic → 1/3 body layout → hero จาก 2-pass) และแยก exploratory code ไว้ใน /design-exploration/</dd></div>
+        <div><dt>Effectiveness</dt><dd>ยังไม่มี evidence เชิงตัวเลขของทีมเอง — เป็นการแปลง methodology จากวิดีโอวิจัยภายนอก (Chase AI, Chris McCoy) ไม่มี metric ว่า hard-gate ลด AI slop ได้กี่ %</dd></div>
+      </dl>
+      <footer class="story__meta">
+        <span><b>date</b> ไม่ระบุ</span>
+        <span><b>source</b> <code>skills/design/design-setup/SKILL.md</code></span>
+        <span><b>evidence</b> rationale only</span>
+      </footer>
+        <p class="popup__link"><code>/?skill=design-setup</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-design-rules" data-slug="design-rules" aria-labelledby="story-design-rules-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Design · origin story</span>
+          <h3 id="story-design-rules-title">design-rules</h3>
+          <p class="popup__summary">Major Third 1.25, 60/30/10, 8pt grid, 12/8/4 columns, 4-state button</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <p class="story__inherit">skill นี้ไม่มี origin story ของตัวเอง — inherit จาก
+        <a href="?skill=design-setup" data-skill-link="design-setup">design-setup</a></p>
+      <p class="story__inherit-note">ชุดกฎเชิงตัวเลขที่แปลงจาก Kole Jain / Chris McCoy / Ran Segall / Satori Graphics ไม่มีปัญหาต้นทางของทีมในไฟล์ — ถูก “automatically referenced and enforced by design-setup”</p>
+      <footer class="story__meta"><span><b>source</b> <code>skills/design/design-rules/SKILL.md</code></span></footer>
+        <p class="popup__link"><code>/?skill=design-rules</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-design-psychology" data-slug="design-psychology" aria-labelledby="story-design-psychology-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Design · origin story</span>
+          <h3 id="story-design-psychology-title">design-psychology</h3>
+          <p class="popup__summary">3-Brain persona, MAYA, cognitive chunking และ perceived value</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <p class="story__inherit">skill นี้ไม่มี origin story ของตัวเอง — inherit จาก
+        <a href="?skill=design-setup" data-skill-link="design-setup">design-setup</a></p>
+      <p class="story__inherit-note">แปลง framework จิตวิทยาผู้ใช้จาก Chris McCoy / Ran Segall โดยตรง ไม่มี incident ของทีมอ้างอิงในไฟล์</p>
+      <footer class="story__meta"><span><b>source</b> <code>skills/design/design-psychology/SKILL.md</code></span></footer>
+        <p class="popup__link"><code>/?skill=design-psychology</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+    <dialog class="popup glass" id="story-design-audit" data-slug="design-audit" aria-labelledby="story-design-audit-title">
+      <div class="popup__inner">
+        <header class="popup__head">
+          <span class="eyebrow">Design · origin story</span>
+          <h3 id="story-design-audit-title">design-audit</h3>
+          <p class="popup__summary">30-second first impression, LIFT, trust และ CTA</p>
+          <button class="popup__close" data-close aria-label="ปิด">×</button>
+        </header>
+        
+      <p class="story__inherit">skill นี้ไม่มี origin story ของตัวเอง — inherit จาก
+        <a href="?skill=design-setup" data-skill-link="design-setup">design-setup</a></p>
+      <p class="story__inherit-note">checklist จาก 30-Second Test ของ Ran Segall และ LIFT System ของ Satori Graphics เป็นขั้น audit ปิดท้าย pipeline เดียวกับ design-setup</p>
+      <footer class="story__meta"><span><b>source</b> <code>skills/design/design-audit/SKILL.md</code></span></footer>
+        <p class="popup__link"><code>/?skill=design-audit</code> — deep-link ตรงมาที่ popup นี้ได้</p>
+      </div>
+    </dialog>
+
+<script>
+(() => {
+  const dialogs = new Map([...document.querySelectorAll("dialog.popup")].map(d => [d.dataset.slug, d]));
+  let current = null;
+
+  function open(slug, push = true) {
+    const d = dialogs.get(slug);
+    if (!d) return;
+    if (current && current !== d) current.close();
+    current = d;
+    if (!d.open) d.showModal();
+    if (push) {
+      const u = new URL(location.href);
+      u.searchParams.set("skill", slug);
+      history.pushState({ skill: slug }, "", u);
+    }
+  }
+  function closeCurrent(push = true) {
+    if (current && current.open) current.close();
+    current = null;
+    if (push) {
+      const u = new URL(location.href);
+      if (u.searchParams.has("skill")) { u.searchParams.delete("skill"); history.pushState({}, "", u); }
+    }
+  }
+
+  document.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-skill]");
+    if (card) { open(card.dataset.skill); return; }
+    const link = e.target.closest("[data-skill-link]");
+    if (link) { e.preventDefault(); open(link.dataset.skillLink); return; }
+    if (e.target.closest("[data-close]")) { closeCurrent(); return; }
+    // click on the backdrop (outside the inner panel)
+    if (e.target.matches("dialog.popup")) closeCurrent();
+  });
+  dialogs.forEach((d) => d.addEventListener("cancel", (e) => { e.preventDefault(); closeCurrent(); }));
+  window.addEventListener("popstate", () => {
+    const slug = new URL(location.href).searchParams.get("skill");
+    slug ? open(slug, false) : closeCurrent(false);
+  });
+  const initial = new URL(location.href).searchParams.get("skill");
+  if (initial) open(initial, false);
+
+  // visible grid toggle
+  const btn = document.getElementById("gridToggle");
+  const setGrid = (on) => { document.body.classList.toggle("grid-off", !on); btn.setAttribute("aria-pressed", String(on)); };
+  btn.addEventListener("click", () => setGrid(document.body.classList.contains("grid-off")));
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "g" && !e.metaKey && !e.ctrlKey && !e.altKey && !(current && current.open) && !/input|textarea/i.test(e.target.tagName)) setGrid(document.body.classList.contains("grid-off"));
+  });
+
+  // quiet reveal
+  if (matchMedia("(prefers-reduced-motion: no-preference)").matches && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  } else {
+    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+  }
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-09-03 — visual direction approved; batch A shipped (branch `docs/12-visual-direction`, issue #12)
+
+**Goal:** record the developer's approval (2026-09-03) of the direction explored at `docs/mock/visible-grid/index.html` and ship its artifacts so spec §6 stops gating visual work.
+
+**Shipped:**
+- spec §6 rewrite marked `approved` (Editorial Minimalism × Modern Swiss × Liquid Glass; ultramarine accent; Archivo + Bai Jamjuree, TH-primary with EN toggle; light/dark; Visible Grid cut for this round)
+- `CLAUDE.md` — the "pending final developer sign-off" sentence → approved; batch A is no longer gated
+- `docs/mock/` committed — `visible-grid/index.html` (the explored artifact) + older `Fable 5.1/`, `Luna/` mocks as reference
+- ledger: the visual-direction row reconciled to ✅ (follow-up = implement the direction on the site)
+- **Excluded:** untracked `DESIGN.md` left out on purpose — it describes a different project ("T4 Labs"), contradicts the approved direction (Visible Grid as signature, orange accent `#E8461B`), and its references (`../Requirement.MD`, `docs/design/expensive-minimalism.md`) are dead in this repo; it stays untracked for a developer decision
+
+**Validation:** docs-only diff — `bun run verify` green on the branch (re-run for the gate ledger).
+
+---
+
 ## 2026-09-02 — repo live on GitHub + CI billing-lock recorded (branch `main`, commits `8f54c07` → `29bdb8a`)
 
 **Goal:** ship the local scaffold to GitHub with the T4 enforcement tiers live, and record the account-level ceiling honestly.

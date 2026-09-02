@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agentic Framework — editorial × swiss × glass</title>
+<meta name="description" content="Style exploration: Editorial Minimalism × Modern Swiss × Liquid Glass." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Bai+Jamjuree:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ------------------------------------------------------------------ tokens */
+:root{
+  --paper:#f3f2ec;      /* canvas — near-neutral, a whisper of warmth (not cream) */
+  --paper-deep:#eae8e0;/* recessed tint band */
+  --ink:#131310;        /* primary text + dark hairlines */
+  --muted:#6e6c64;      /* secondary body */
+  --faint:#6e6c64;       /* decorative metadata — verified: no AA band lighter than --muted on this paper (measured #74726b=4.29 fail, this=4.69 pass) */
+  --line:rgba(19,19,16,.10);
+  --line-strong:rgba(19,19,16,.20);
+  --accent:#2233c9;     /* single accent — ultramarine */
+  --accent-ink:#ffffff;
+  --glass:rgba(243,242,236,.55);
+  --spec:rgba(255,255,255,.55);
+  --r:8px;
+  --maxw:1240px;
+  --gut:clamp(16px,5vw,72px);
+  --disp:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+/* dark theme — design-rules §4: elevation via lighter surfaces (no shadows), lower border opacity */
+[data-theme="dark"]{
+  --paper:#0d0d10;
+  --paper-deep:#16161b;   /* raised band — lighter than base */
+  --ink:#eceada;
+  --muted:#a8a59b;
+  --faint:#8f8d84;      /* verified 5.83:1 on dark paper (was #77756c = 4.20) */
+  --line:rgba(236,234,218,.09);
+  --line-strong:rgba(236,234,218,.2);
+  --accent:#8f9bff;      /* brighter ultramarine — #2233c9 fails contrast on near-black */
+  --accent-ink:#0d0d10;
+  --glass:rgba(13,13,16,.55);
+  --spec:rgba(255,255,255,.05);
+  color-scheme:dark;
+}
+/* Thai display face + room for stacked diacritics the Latin line-heights don't give */
+html[lang="th"]{
+  --disp:"Bai Jamjuree","Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Bai Jamjuree","Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+html[lang="th"] .hero h1{line-height:1.08}
+html[lang="th"] .sec-head h2{line-height:1.14}
+html[lang="th"] .hero h1,html[lang="th"] .sec-head h2,html[lang="th"] .pull{font-weight:700}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;color-scheme:light}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--body);font-size:16px;line-height:1.6;
+  font-weight:400;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{margin:0;font-family:var(--disp);font-weight:800;letter-spacing:-.02em}
+p{margin:0}
+::selection{background:var(--accent);color:var(--accent-ink)}
+
+/* ------------------------------------------------------------------ frame */
+.page{max-width:var(--maxw);margin:0 auto;position:relative}
+.inner{position:relative;padding:0 var(--gut)}
+
+/* ------------------------------------------------------------------ nav (liquid glass) */
+nav{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  height:57px;padding:0 clamp(16px,5vw,72px);
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  border-bottom:1px solid var(--line);
+  box-shadow:inset 0 1px 0 var(--spec);
+}
+.brand{font-family:var(--disp);font-weight:800;letter-spacing:-.02em;font-size:15px;display:flex;align-items:center;gap:10px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block}
+.nav-index{display:flex;gap:22px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);overflow:hidden;white-space:nowrap}
+.nav-index a:hover{color:var(--accent)}
+
+/* nav controls — TH/EN + theme toggles (design-rules §5.1: default/hover/active/focus states) */
+.nav-right{display:flex;align-items:center;gap:24px}
+.nav-controls{display:flex;align-items:center;gap:8px}
+.tbtn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;line-height:1;
+  padding:7px 10px;border-radius:6px;border:1px solid var(--line-strong);
+  background:transparent;color:var(--muted);cursor:pointer;
+  transition:transform .14s ease,background .14s ease,color .14s ease,border-color .14s ease;
+}
+.tbtn:hover{color:var(--ink);border-color:var(--ink)}
+.tbtn:active{transform:scale(.965)}
+.tbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tbtn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ------------------------------------------------------------------ hero */
+.hero{padding:clamp(72px,11vw,150px) 0 clamp(56px,8vw,110px);position:relative}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px}
+.eyebrow .tick{width:26px;height:1px;background:var(--accent);display:inline-block}
+.hero h1{
+  font-size:clamp(2.9rem,8.6vw,7.6rem);line-height:.94;font-weight:800;
+  font-variation-settings:"wdth" 74;letter-spacing:-.03em;margin:28px 0 0;max-width:15ch;
+}
+.hero h1 .acc{color:var(--accent)}
+.hero .lede{max-width:46ch;margin-top:32px;font-size:clamp(1rem,1.4vw,1.19rem);color:var(--muted);line-height:1.55}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:36px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.hero-meta b{color:var(--ink);font-weight:500}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:38px}
+
+/* buttons — 3 states shown (default/hover/active via :hover/:active) */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.04em;
+  padding:12px 20px;border-radius:var(--r);border:1px solid transparent;cursor:pointer;
+  transition:transform .16s ease,background .16s ease,color .16s ease,border-color .16s ease;
+}
+.btn:active{transform:scale(.985)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+.btn-ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ------------------------------------------------------------------ sections */
+.section{position:relative;padding:clamp(60px,9vw,112px) 0}
+.section + .section{border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:34px}
+.sec-head .num{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.06em}
+.sec-head h2{font-size:clamp(1.5rem,2.6vw,2.35rem);font-variation-settings:"wdth" 88;line-height:1.02;font-weight:800}
+.sec-head .rule{flex:1;height:1px;background:var(--line);align-self:center}
+.lead{max-width:52ch;color:var(--muted);font-size:1.03rem}
+
+/* 01 problem — 2x2 */
+.blocks{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:8px}
+.blocks > div{background:var(--paper);padding:28px 26px}
+.blocks .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--accent);display:flex;align-items:center;gap:10px}
+.blocks .k .n{color:var(--faint)}
+.blocks h3{font-size:1.24rem;font-variation-settings:"wdth" 90;font-weight:700;margin:12px 0 8px;letter-spacing:-.01em}
+.blocks p{color:var(--muted);font-size:.97rem;max-width:40ch}
+
+/* 02 outcomes */
+.outcomes{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.outcome{border-top:2px solid var(--ink);padding-top:16px}
+.outcome .o{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint)}
+.outcome h3{font-size:1.32rem;font-variation-settings:"wdth" 82;font-weight:800;margin:10px 0 10px;letter-spacing:-.015em}
+.outcome p{color:var(--muted);font-size:.95rem}
+.pull{
+  margin-top:44px;font-family:var(--disp);font-weight:800;font-variation-settings:"wdth" 78;
+  font-size:clamp(1.6rem,4vw,3rem);line-height:1.02;letter-spacing:-.025em;max-width:22ch;
+}
+.pull .acc{color:var(--accent)}
+
+/* 03 architecture diagram */
+.diagram{border:1px solid var(--line);background:var(--paper-deep);border-radius:var(--r);padding:34px 30px;overflow-x:auto}
+.flow{display:flex;flex-direction:column;min-width:520px}
+.node{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;padding:13px 16px;border:1px solid var(--line-strong);background:var(--paper);border-radius:6px;min-width:300px;max-width:520px}
+.node.route{border-left:3px solid var(--accent)}
+.node small{display:block;color:var(--faint);font-size:10.5px;letter-spacing:.06em;margin-top:3px}
+.branch{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 6px 60px;position:relative}
+.branch:before{content:"";position:absolute;left:-45px;top:0;bottom:0;width:1px;background:var(--line-strong)}
+.arrow{align-self:flex-start;margin:6px 0 6px 78px;color:var(--line-strong);font-family:var(--mono);font-size:13px}
+.arrow.c{margin-left:16px}
+
+/* 04 skills index */
+.skill-fam{border-top:1px solid var(--line);padding:18px 0}
+.skill-fam:first-of-type{border-top:0;padding-top:4px}
+.skill-fam .head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.skill-fam .head .label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.skill-fam .head .count{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.slugs{display:flex;flex-wrap:wrap;gap:8px 10px}
+.slug{font-family:var(--mono);font-size:12.5px;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 11px;background:var(--paper);transition:border-color .14s ease,color .14s ease}
+.slug:hover{border-color:var(--accent);color:var(--accent)}
+.skill-note{margin-top:22px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--faint)}
+
+/* 05 built on */
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.tools > a{background:var(--paper);padding:28px 26px;display:flex;flex-direction:column;gap:12px;transition:background .16s ease}
+.tools > a:hover{background:var(--paper-deep)}
+.tools .status{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:9px}
+.tools .status .s{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.tools .status.dev .s{background:var(--accent);animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.tools h3{font-size:1.5rem;font-variation-settings:"wdth" 86;font-weight:800;letter-spacing:-.015em}
+.tools p{color:var(--muted);font-size:.96rem;max-width:44ch}
+.tools .slug-arrow{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.04em}
+
+/* 06 evidence */
+.evidence{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ev{border:1px solid var(--line);border-radius:var(--r);padding:26px 24px;background:var(--paper);display:flex;flex-direction:column;gap:14px}
+.ev .big{font-family:var(--disp);font-weight:800;font-variation-settings:"wdth" 80;font-size:clamp(1.9rem,3vw,2.6rem);line-height:.95;letter-spacing:-.02em}
+.ev .big .u{font-size:.5em;color:var(--muted);font-weight:600}
+.ev h3{font-size:1.06rem;font-variation-settings:"wdth" 92;font-weight:700;letter-spacing:-.01em}
+.ev p{color:var(--muted);font-size:.92rem}
+.ev .src{margin-top:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--faint);border-top:1px solid var(--line);padding-top:12px}
+.ev .src b{color:var(--accent);font-weight:500}
+
+/* enforcement — the one liquid-glass floating card */
+.glasscard{
+  margin-top:30px;border-radius:var(--r);border:1px solid var(--line-strong);
+  background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+  box-shadow:inset 0 1px 0 var(--spec);padding:30px 30px 26px;position:relative;
+}
+.glasscard .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:20px;display:flex;justify-content:space-between;gap:12px}
+.glasscard .k .lim{color:var(--faint);letter-spacing:.04em}
+.ladder{display:flex;flex-direction:column}
+.ladder .rung{display:grid;grid-template-columns:120px 1fr;gap:16px;padding:11px 0;border-top:1px solid var(--line)}
+.ladder .rung:first-child{border-top:0}
+.ladder .rung .tag{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink)}
+.ladder .rung .tag .w{color:var(--faint)}
+.ladder .rung .what{font-size:.94rem;color:var(--muted)}
+.ladder .rung .what b{color:var(--ink);font-weight:600}
+.ladder .rung.strong .tag{color:var(--accent)}
+.honest{margin-top:20px;font-size:.92rem;color:var(--muted);max-width:64ch;border-left:2px solid var(--accent);padding-left:14px}
+
+/* install strip */
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.install > div{background:var(--paper);padding:24px 22px}
+.install .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.install h3{font-size:1.08rem;font-variation-settings:"wdth" 92;font-weight:700;margin:10px 0 8px;letter-spacing:-.01em}
+.install p{font-family:var(--mono);font-size:12px;color:var(--muted);word-break:break-word}
+.install p .c{color:var(--ink)}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:clamp(52px,8vw,92px) 0 40px}
+.foot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:44px}
+.foot-grid .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.foot-grid p{font-size:.94rem;color:var(--muted);max-width:34ch}
+.wordmark{
+  font-family:var(--disp);font-weight:800;font-variation-settings:"wdth" 118;
+  font-size:clamp(2.4rem,9vw,7rem);line-height:.9;letter-spacing:-.02em;
+  color:transparent;-webkit-text-stroke:1px var(--line-strong);white-space:nowrap;overflow:hidden;
+}
+.foot-note{margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--faint)}
+
+/* ------------------------------------------------------------------ responsive */
+@media (max-width:1023px){
+  .blocks,.tools{grid-template-columns:1fr}
+  .outcomes{grid-template-columns:1fr 1fr}
+  .evidence,.install{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr}
+  .nav-index{display:none}
+}
+@media (max-width:639px){
+  .outcomes{grid-template-columns:1fr}
+  .sec-head .rule{display:none}
+  .nav-right{gap:12px}
+  .brand{font-size:13px}
+  .tbtn{padding:5px 7px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="inner">
+    <nav>
+      <span class="brand"><span class="dot"></span>AGENTIC FRAMEWORK</span>
+      <div class="nav-right">
+        <span class="nav-index">
+          <a href="#problem">01</a><a href="#outcomes">02</a><a href="#architecture">03</a>
+          <a href="#skills">04</a><a href="#built-on">05</a><a href="#evidence">06</a>
+        </span>
+        <div class="nav-controls" role="group" aria-label="language and theme">
+          <button type="button" class="tbtn lang" data-lang="th" aria-pressed="true">TH</button>
+          <button type="button" class="tbtn lang" data-lang="en" aria-pressed="false">EN</button>
+          <button type="button" class="tbtn" id="themeBtn" aria-label="switch theme">☾</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- hero -->
+    <section class="hero">
+      <p class="eyebrow"><span class="tick"></span><span data-i18n="eyebrow">มาตรฐานปฏิบัติการ Agent-primary</span></p>
+      <h1 data-i18n="h1">agent เขียนโค้ด <span class="acc">gates</span> พิสูจน์</h1>
+      <p class="lede" data-i18n="lede">เลเยอร์ปฏิบัติการสำหรับ repo ที่ coding agent คือ developer หลัก — routing, delegation, memory และ enforcement hooks ให้ทุกงาน ship ออกมาพร้อมหลักฐาน ไม่ใช่แค่ความรู้สึก</p>
+      <div class="hero-meta">
+        <span><b>xeno-skills</b></span><span>openclink</span><span>clone space</span><span data-i18n="heroMeta">สแตติก · SSG</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#skills" data-i18n="ctaPrimary">อ่านมาตรฐาน →</a>
+        <a class="btn btn-ghost" href="#built-on" data-i18n="ctaGhost">สร้างอยู่บนอะไร</a>
+      </div>
+    </section>
+
+    <!-- 01 -->
+    <section class="section" id="problem">
+      <div class="sec-head"><span class="num">01</span><h2 data-i18n="s1Head">ปัญหา</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s1Lead">ไม่ใช่แค่รวม prompt — เป็นเลเยอร์ปฏิบัติการสำหรับ repo ที่ agent คือ developer หลัก ปัญหา 4 ข้อที่วนกลับมาทุกครั้ง:</p>
+      <div class="blocks">
+        <div><p class="k"><span class="n">01.1</span><span data-i18n="b1k">คนต้องนั่งอยู่ตรงกลาง</span></p><h3 data-i18n="b1h">มนุษย์ในตำแหน่งกลาง</h3><p data-i18n="b1p">รัน AI หลายตัวทีละที แล้วคุณก็อยู่กลางคำตอบทุกครั้ง master รับงานครั้งเดียว เลือก skills เอง และ dispatch — คุณ approve เฉพาะช่วงที่สำคัญ</p></div>
+        <div><p class="k"><span class="n">01.2</span><span data-i18n="b2k">ถามครั้งเดียว · โมเดลเดียว</span></p><h3 data-i18n="b2k">ถามครั้งเดียว · โมเดลเดียว</h3><p data-i18n="b2p">โมเดลเดียวถามครั้งเดียวข้าม edge case ไป <code>clink-brainstorm</code> รันหลาย agent หลายมุมมอง พร้อม challenge loop ก่อนลงข้อสรุป</p></div>
+        <div><p class="k"><span class="n">01.3</span><span data-i18n="b3k">ความลืมของ context</span></p><h3 data-i18n="b3k">ความลืมของ context</h3><p data-i18n="b3p">compaction คงแค่ข้อสรุป เหตุผลหายหมด ชั้น memory, ledger และ handoff ทำให้ agent ตัวใหม่เปิดเฉพาะส่วนที่เกี่ยวข้องได้</p></div>
+        <div><p class="k"><span class="n">01.4</span><span data-i18n="b4k">เขียนไว้ ≠ บังคับได้</span></p><h3 data-i18n="b4k">เขียนไว้ ≠ บังคับได้</h3><p data-i18n="b4p">กฎที่ไม่มี check ที่รันได้คือข้อบกพร่องของระบบ ไม่ใช่แค่ของ agent ถ้ากฎสำคัญตรวจสอบไม่ได้ จะถูกบันทึกไว้ว่าเป็นช่องว่าง</p></div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="section" id="outcomes">
+      <div class="sec-head"><span class="num">02</span><h2 data-i18n="s2Head">ผลลัพธ์สี่ข้อ</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s2Lead">สิ่งที่เชื่อถือให้ agent ทำได้:</p>
+      <div class="outcomes">
+        <div class="outcome"><span class="o">route</span><h3 data-i18n="o1h">route ให้ถูกจุด</h3><p data-i18n="o1p">เลือก skill และ phase ที่ถูกต้องก่อนลงมือ แล้ว re-route ทุก boundary</p></div>
+        <div class="outcome"><span class="o">delegate</span><h3 data-i18n="o2h">ส่งต่อตรงปลายยอด</h3><p data-i18n="o2p">ส่งงาน leaf ที่มีขอบเขตให้ agent ตัวอื่น ขณะที่ master ครอบครองทั้งต้นไม้</p></div>
+        <div class="outcome"><span class="o">remember</span><h3 data-i18n="o3h">จำได้อย่างถาวร</h3><p data-i18n="o3p">เก็บ working state ให้ยั่งยืน retrieval-first รอดผ่าน compact ได้</p></div>
+        <div class="outcome"><span class="o">verify</span><h3 data-i18n="o4h">ตรวจสอบได้เสมอ</h3><p data-i18n="o4p">อะไรก็ตามจะบอกว่าเสร็จต้องมีหลักฐาน — คำสั่ง, output และ <code>file:line</code></p></div>
+      </div>
+      <p class="pull" data-i18n="pull">ส่งต่อใบไม้<br><span class="acc">ครอบครองทั้งต้น</span></p>
+    </section>
+
+    <!-- 03 -->
+    <section class="section" id="architecture">
+      <div class="sec-head"><span class="num">03</span><h2 data-i18n="s3Head">แต่ละชิ้นทำงานร่วมกันอย่างไร</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s3Lead">งานไหลผ่าน framework อย่างไร — แยก judgment ออกจาก execution แล้ว master รวมกลับมาและ verify</p>
+      <div class="diagram">
+        <div class="flow">
+          <div class="node" data-i18n="n1">โจทย์จากมนุษย์</div>
+          <div class="arrow c">↓</div>
+          <div class="node route">ask-xeno / using-t4<small data-i18n="n2s">route งาน เลือก skill + phase</small></div>
+          <div class="arrow c">↓</div>
+          <div class="branch">
+            <div class="node"><span data-i18n="n3a">judgment</span><small>clink-brainstorm · clink-debug</small></div>
+            <div class="node"><span data-i18n="n3b">งานที่มีขอบเขต</span><small>clink-subagents · leaf impl</small></div>
+          </div>
+          <div class="arrow c">↓</div>
+          <div class="node route"><span data-i18n="n4">master รวม + verify</span><small data-i18n="n4s">ผลของ subagent ไม่ใช่หลักฐาน — ต้องตรวจใหม่</small></div>
+          <div class="arrow c">↓</div>
+          <div class="node">Grill → PRD → issues → TDD → review → verify</div>
+          <div class="arrow c">↓</div>
+          <div class="node" data-i18n="n6">การ์ด pre-push → CI → humans approve</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="section" id="skills">
+      <div class="sec-head"><span class="num">04</span><h2 data-i18n="s4Head">skills</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s4Lead">จัดกลุ่มตาม family แคตตาล็อกถูก generate จาก frontmatter ของ <code>SKILL.md</code> — ไม่เคย hardcode จำนวน</p>
+      <div class="skill-fam">
+        <div class="head"><span class="label">Design</span><span class="count">design-setup · design-rules · design-audit · design-psychology · using-design</span></div>
+        <div class="slugs"><span class="slug">design-setup</span><span class="slug">design-rules</span><span class="slug">design-audit</span><span class="slug">design-psychology</span><span class="slug">using-design</span></div>
+      </div>
+      <div class="skill-fam">
+        <div class="head"><span class="label">Multi-agent</span><span class="count">clink family</span></div>
+        <div class="slugs"><span class="slug">clink-brainstorm</span><span class="slug">clink-subagents</span><span class="slug">clink-debug</span><span class="slug">clink-masteragent</span><span class="slug">using-clink</span></div>
+      </div>
+      <div class="skill-fam">
+        <div class="head"><span class="label">T4</span><span class="count" data-i18n="famCountT4">มาตรฐานปฏิบัติการ</span></div>
+        <div class="slugs"><span class="slug">t4-agent-memory</span><span class="slug">t4-dev-workflow</span><span class="slug">t4-engineering-records</span><span class="slug">t4-afk</span><span class="slug">t4-project-bootstrap</span><span class="slug">using-t4</span></div>
+      </div>
+      <div class="skill-fam">
+        <div class="head"><span class="label">Standalone</span><span class="count"></span></div>
+        <div class="slugs"><span class="slug">ask-xeno</span><span class="slug">karpathy-guidelines</span></div>
+      </div>
+      <p class="skill-note" data-i18n="skillNote">เปิด skill เพื่อดูที่มา — ปัญหาจริง, กลไก, หลักฐาน และข้อจำกัดที่ประกาศไว้</p>
+    </section>
+
+    <!-- 05 -->
+    <section class="section" id="built-on">
+      <div class="sec-head"><span class="num">05</span><h2 data-i18n="s5Head">สร้างอยู่บน</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s5Lead">เครื่องมือสองตัวที่ framework เรียก — ไม่ใช่ผลิตภัณฑ์พี่น้องสองตัว</p>
+      <div class="tools">
+        <a href="#built-on"><span class="status"><span class="s"></span>transport · MCP</span><h3>openclink</h3><p data-i18n="t1p">transport ที่ครอบครัว <code>clink</code> เรียกสำหรับการ orchestration หลาย agent — ช่องทางระหว่าง agents</p><span class="slug-arrow">/ecosystem/openclink →</span></a>
+        <a href="#built-on"><span class="status dev"><span class="s"></span>developing</span><h3>Clone Space</h3><p data-i18n="t2p">เก็บ snapshot ของหน้าเว็บทำงานให้ replay ออฟไลน์ได้พร้อม motion — แหล่งอ้างอิงที่ให้ design family ดึงดีไซน์จากเว็บไซต์จริง</p><span class="slug-arrow">/ecosystem/clone-space →</span></a>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="section" id="evidence">
+      <div class="sec-head"><span class="num">06</span><h2 data-i18n="s6Head">หลักฐาน</h2><span class="rule"></span></div>
+      <p class="lead" data-i18n="s6Lead">ทุกตัวเลขมีที่มาและข้อจำกัด snapshot ถ่ายไว้ ณ วันที่บันทึก</p>
+      <div class="evidence">
+        <div class="ev">
+          <div class="big">8,974→1,368<span class="u"> B</span></div>
+          <h3 data-i18n="e1h">routing ลด context</h3>
+          <p data-i18n="e1p">เปลี่ยนจากการ inject map skill ทั้งก้อนเป็น routing + retrieval ลด bytes ต่อครั้งตลอด session ที่ inject 4 ครั้ง</p>
+          <div class="src"><b>source</b> routing experiment · <b>limitation</b> single-session snapshot</div>
+        </div>
+        <div class="ev">
+          <div class="big">94<span class="u"> assertions</span></div>
+          <h3 data-i18n="e2h">gate ผ่านไม่เท่ากับสะอาดหมดจด</h3>
+          <p data-i18n="e2p">ชุด gate 94 assertions ผ่าน ขณะที่ reviewer พบ control bytes รั่ว test ยืนยัน contract ที่ประกาศ ไม่ใช่การรับประกันว่าไม่มีปัญหาอื่น</p>
+          <div class="src"><b>source</b> review record · <b>limitation</b> one review, not a sweep</div>
+        </div>
+        <div class="ev">
+          <div class="big">113<span class="u"> compactions</span></div>
+          <h3 data-i18n="e3h">compaction ไม่ได้ทำให้เล็กลงทุกครั้ง</h3>
+          <p data-i18n="e3p">ตลอด 10 project: เหมาก่อน compact ~719K ลด ~85% — แต่ 13 จาก 113 ทำให้ context โตขึ้น ขนาด context ต้องคำนวณจาก input + cache tokens</p>
+          <div class="src"><b>source</b> 113-session scan · <b>limitation</b> 10 projects only</div>
+        </div>
+      </div>
+
+      <!-- the liquid-glass moment -->
+      <div class="glasscard">
+        <div class="k"><span data-i18n="glassK">บันได enforcement</span><span class="lim" data-i18n="glassLim">แต่ละขั้นตรวจสิ่งที่ขั้นใต้ตรวจไม่ได้</span></div>
+        <div class="ladder">
+          <div class="rung"><span class="tag"><span class="w">soft</span> SessionStart</span><span class="what" data-i18n="r1w">inject คำสั่ง เปิด route ที่เกี่ยวข้อง</span></div>
+          <div class="rung"><span class="tag"><span class="w">soft</span> UserPromptSubmit</span><span class="what" data-i18n="r2w">บอกชื่อ route และ skill ที่ควรใช้</span></div>
+          <div class="rung"><span class="tag"><span class="w">hard</span> PreToolUse</span><span class="what" data-i18n="r3w">บล็อกการกระทำที่รูปทรงตรวจสอบได้</span></div>
+          <div class="rung"><span class="tag"><span class="w">agnostic</span> .githooks/pre-push</span><span class="what" data-i18n="r4w">อ้างอิง issue, tree budget, gate ledger</span></div>
+          <div class="rung strong"><span class="tag"><span class="w">strongest</span> CI + branch rules</span><span class="what" data-i18n="r5w">บังคับ check ในระบบที่แชร์ร่วมกัน</span></div>
+          <div class="rung strong"><span class="tag">human</span><span class="what" data-i18n="r6w"><b>developer approve</b> — ตัดสินสิ่งที่เครื่องตรวจไม่ได้</span></div>
+        </div>
+        <p class="honest" data-i18n="honest">ข้อจำกัดที่พูดตรงๆ: hooks วัด judgment ไม่ได้ ไม่อาจรับประกัน TDD หรือความลึกของ review hooks ระดับ local ข้ามได้ด้วย <code>--no-verify</code> regex ไม่ใช่ shell parser ที่สมบูรณ์ CI และ branch rules แข็งแรงกว่า hook ระดับ local</p>
+      </div>
+    </section>
+
+    <!-- install -->
+    <section class="section">
+      <div class="sec-head"><span class="num">07</span><h2 data-i18n="s7Head">ติดตั้ง</h2><span class="rule"></span></div>
+      <div class="install">
+        <div><p class="k">Skills installer</p><h3 data-i18n="i1h">เลือกสิ่งที่ต้องการ</h3><p data-i18n="i1p"><span class="c">npx skills add xenodeve/xeno-skills</span><br>หรือ skill เดียวด้วย <span class="c">--skill clink-brainstorm</span></p></div>
+        <div><p class="k">Plugin</p><h3 data-i18n="i2h">skills + hooks</h3><p><span class="c">/plugin marketplace add xeno-skills</span><br><span class="c">/plugin install xeno-skills</span></p></div>
+        <div><p class="k">Bootstrap</p><h3 data-i18n="i3h">เลเยอร์ T4</h3><p data-i18n="i3p">นำเลเยอร์ปฏิบัติการเข้า repo ที่ควรรัน standard นี้ได้เองแบบ self-contained</p></div>
+      </div>
+      <p class="skill-note" style="margin-top:22px" data-i18n="installNote">Hooks รันเฉพาะใน repo ที่มี <code>.claude/t4.json</code> — file นี้คือ opt-in</p>
+    </section>
+
+    <!-- footer -->
+    <footer>
+      <div class="foot-grid">
+        <div><p class="k">Site</p><p data-i18n="f1p">Agentic Framework — นำเสนอ ecosystem agent-first และ standard ที่รันอยู่บนนั้น</p></div>
+        <div><p class="k">Standard</p><p data-i18n="f2p">T4 — รีโพ agent-primary ที่ ship พร้อมหลักฐาน PRD → issues → TDD → verify</p></div>
+        <div><p class="k">Content</p><p data-i18n="f3p">Markdown-driven, สแตติก (SSG) ไม่มี database ไม่พึ่ง network ตอน build</p></div>
+      </div>
+      <div class="wordmark" aria-hidden="true">AGENTIC</div>
+      <p class="foot-note" data-i18n="footNote">xeno-skills · openclink · clone space — การทดลองสไตล์ (Editorial Minimalism × Modern Swiss × Liquid Glass)</p>
+    </footer>
+  </div>
+</div>
+
+<script>
+/* i18n — Thai is primary: the markup ships TH by default (works without JS),
+   EN lives in the dictionary. Theme follows prefers-color-scheme, then the
+   manual choice (persisted). Both persist to localStorage when available. */
+(function () {
+  var I18N = {
+    th: {
+      metaDesc: "มาตรฐานปฏิบัติการสำหรับ repo ที่ agent เป็น developer หลัก — xeno-skills · openclink · clone space",
+      eyebrow: "มาตรฐานปฏิบัติการ Agent-primary",
+      h1: 'agent เขียนโค้ด <span class="acc">gates</span> พิสูจน์',
+      lede: "เลเยอร์ปฏิบัติการสำหรับ repo ที่ coding agent คือ developer หลัก — routing, delegation, memory และ enforcement hooks ให้ทุกงาน ship ออกมาพร้อมหลักฐาน ไม่ใช่แค่ความรู้สึก",
+      heroMeta: "สแตติก · SSG",
+      ctaPrimary: "อ่านมาตรฐาน →",
+      ctaGhost: "สร้างอยู่บนอะไร",
+      s1Head: "ปัญหา",
+      s1Lead: "ไม่ใช่แค่รวม prompt — เป็นเลเยอร์ปฏิบัติการสำหรับ repo ที่ agent คือ developer หลัก ปัญหา 4 ข้อที่วนกลับมาทุกครั้ง:",
+      b1k: "คนต้องนั่งอยู่ตรงกลาง",
+      b1h: "มนุษย์ในตำแหน่งกลาง",
+      b1p: "รัน AI หลายตัวทีละที แล้วคุณก็อยู่กลางคำตอบทุกครั้ง master รับงานครั้งเดียว เลือก skills เอง และ dispatch — คุณ approve เฉพาะช่วงที่สำคัญ",
+      b2k: "ถามครั้งเดียว · โมเดลเดียว",
+      b2p: "โมเดลเดียวถามครั้งเดียวข้าม edge case ไป <code>clink-brainstorm</code> รันหลาย agent หลายมุมมอง พร้อม challenge loop ก่อนลงข้อสรุป",
+      b3k: "ความลืมของ context",
+      b3p: "compaction คงแค่ข้อสรุป เหตุผลหายหมด ชั้น memory, ledger และ handoff ทำให้ agent ตัวใหม่เปิดเฉพาะส่วนที่เกี่ยวข้องได้",
+      b4k: "เขียนไว้ ≠ บังคับได้",
+      b4p: "กฎที่ไม่มี check ที่รันได้คือข้อบกพร่องของระบบ ไม่ใช่แค่ของ agent ถ้ากฎสำคัญตรวจสอบไม่ได้ จะถูกบันทึกไว้ว่าเป็นช่องว่าง",
+      s2Head: "ผลลัพธ์สี่ข้อ",
+      s2Lead: "สิ่งที่เชื่อถือให้ agent ทำได้:",
+      o1h: "route ให้ถูกจุด",
+      o1p: "เลือก skill และ phase ที่ถูกต้องก่อนลงมือ แล้ว re-route ทุก boundary",
+      o2h: "ส่งต่อตรงปลายยอด",
+      o2p: "ส่งงาน leaf ที่มีขอบเขตให้ agent ตัวอื่น ขณะที่ master ครอบครองทั้งต้นไม้",
+      o3h: "จำได้อย่างถาวร",
+      o3p: "เก็บ working state ให้ยั่งยืน retrieval-first รอดผ่าน compact ได้",
+      o4h: "ตรวจสอบได้เสมอ",
+      o4p: "อะไรก็ตามจะบอกว่าเสร็จต้องมีหลักฐาน — คำสั่ง, output และ <code>file:line</code>",
+      pull: 'ส่งต่อใบไม้<br><span class="acc">ครอบครองทั้งต้น</span>',
+      s3Head: "แต่ละชิ้นทำงานร่วมกันอย่างไร",
+      s3Lead: "งานไหลผ่าน framework อย่างไร — แยก judgment ออกจาก execution แล้ว master รวมกลับมาและ verify",
+      n1: "โจทย์จากมนุษย์",
+      n2s: "route งาน เลือก skill + phase",
+      n3a: "judgment",
+      n3b: "งานที่มีขอบเขต",
+      n4: "master รวม + verify",
+      n4s: "ผลของ subagent ไม่ใช่หลักฐาน — ต้องตรวจใหม่",
+      n6: "การ์ด pre-push → CI → humans approve",
+      s4Head: "skills",
+      s4Lead: "จัดกลุ่มตาม family แคตตาล็อกถูก generate จาก frontmatter ของ <code>SKILL.md</code> — ไม่เคย hardcode จำนวน",
+      famCountT4: "มาตรฐานปฏิบัติการ",
+      skillNote: "เปิด skill เพื่อดูที่มา — ปัญหาจริง, กลไก, หลักฐาน และข้อจำกัดที่ประกาศไว้",
+      s5Head: "สร้างอยู่บน",
+      s5Lead: "เครื่องมือสองตัวที่ framework เรียก — ไม่ใช่ผลิตภัณฑ์พี่น้องสองตัว",
+      t1p: "transport ที่ครอบครัว <code>clink</code> เรียกสำหรับการ orchestration หลาย agent — ช่องทางระหว่าง agents",
+      t2p: "เก็บ snapshot ของหน้าเว็บทำงานให้ replay ออฟไลน์ได้พร้อม motion — แหล่งอ้างอิงที่ให้ design family ดึงดีไซน์จากเว็บไซต์จริง",
+      s6Head: "หลักฐาน",
+      s6Lead: "ทุกตัวเลขมีที่มาและข้อจำกัด snapshot ถ่ายไว้ ณ วันที่บันทึก",
+      e1h: "routing ลด context",
+      e1p: "เปลี่ยนจากการ inject map skill ทั้งก้อนเป็น routing + retrieval ลด bytes ต่อครั้งตลอด session ที่ inject 4 ครั้ง",
+      e2h: "gate ผ่านไม่เท่ากับสะอาดหมดจด",
+      e2p: "ชุด gate 94 assertions ผ่าน ขณะที่ reviewer พบ control bytes รั่ว test ยืนยัน contract ที่ประกาศ ไม่ใช่การรับประกันว่าไม่มีปัญหาอื่น",
+      e3h: "compaction ไม่ได้ทำให้เล็กลงทุกครั้ง",
+      e3p: "ตลอด 10 project: เหมาก่อน compact ~719K ลด ~85% — แต่ 13 จาก 113 ทำให้ context โตขึ้น ขนาด context ต้องคำนวณจาก input + cache tokens",
+      glassK: "บันได enforcement",
+      glassLim: "แต่ละขั้นตรวจสิ่งที่ขั้นใต้ตรวจไม่ได้",
+      r1w: "inject คำสั่ง เปิด route ที่เกี่ยวข้อง",
+      r2w: "บอกชื่อ route และ skill ที่ควรใช้",
+      r3w: "บล็อกการกระทำที่รูปทรงตรวจสอบได้",
+      r4w: "อ้างอิง issue, tree budget, gate ledger",
+      r5w: "บังคับ check ในระบบที่แชร์ร่วมกัน",
+      r6w: "<b>developer approve</b> — ตัดสินสิ่งที่เครื่องตรวจไม่ได้",
+      honest: "ข้อจำกัดที่พูดตรงๆ: hooks วัด judgment ไม่ได้ ไม่อาจรับประกัน TDD หรือความลึกของ review hooks ระดับ local ข้ามได้ด้วย <code>--no-verify</code> regexไม่ใช่ shell parser ที่สมบูรณ์ CI และ branch rules แข็งแรงกว่า hook ระดับ local",
+      s7Head: "ติดตั้ง",
+      i1h: "เลือกสิ่งที่ต้องการ",
+      i1p: '<span class="c">npx skills add xenodeve/xeno-skills</span><br>หรือ skill เดียวด้วย <span class="c">--skill clink-brainstorm</span>',
+      i2h: "skills + hooks",
+      i3h: "เลเยอร์ T4",
+      i3p: "นำเลเยอร์ปฏิบัติการเข้า repo ที่ควรรัน standard นี้ได้เองแบบ self-contained",
+      installNote: "Hooks รันเฉพาะใน repo ที่มี <code>.claude/t4.json</code> — file นี้คือ opt-in",
+      f1p: "Agentic Framework — นำเสนอ ecosystem agent-first และ standard ที่รันอยู่บนนั้น",
+      f2p: "T4 — รีโพ agent-primary ที่ ship พร้อมหลักฐาน PRD → issues → TDD → verify",
+      f3p: "Markdown-driven, สแตติก (SSG) ไม่มี database ไม่พึ่ง network ตอน build",
+      footNote: "xeno-skills · openclink · clone space — การทดลองสไตล์ (Editorial Minimalism × Modern Swiss × Liquid Glass)"
+    },
+    en: {
+      metaDesc: "Style exploration: Editorial Minimalism × Modern Swiss × Liquid Glass.",
+      eyebrow: "Agent-primary operating standard",
+      h1: 'The agent writes the code. The <span class="acc">gates</span> prove it.',
+      lede: "An operating layer for repositories where the coding agent is the main developer — routing, delegation, memory, and enforcement hooks, so work ships with evidence rather than vibes.",
+      heroMeta: "static · SSG",
+      ctaPrimary: "Read the standard →",
+      ctaGhost: "What it’s built on",
+      s1Head: "The problem",
+      s1Lead: "Not a prompt collection. An operating layer for a repo where the agent is the primary developer. Four problems keep coming back:",
+      b1k: "The human sits in the middle",
+      b1h: "Human in the middle",
+      b1p: "Running several AIs one at a time puts you in the middle of every answer. A master takes the brief once, picks the skills, and dispatches — you approve at the moments that matter.",
+      b2k: "One model, asked once",
+      b2p: "A single model asked a single time misses edge cases. <code>clink-brainstorm</code> runs several agents and several lenses, with a challenge loop before any conclusion.",
+      b3k: "Context amnesia",
+      b3p: "A compaction keeps the conclusion and drops the reasoning. A memory layer, ledger, and handoff let a fresh agent reopen only the relevant slice.",
+      b4k: "Documented ≠ enforced",
+      b4p: "A rule with no executable check is a defect of the system, not just the agent. If an important rule can’t be checked, that is recorded as a gap.",
+      s2Head: "Four outcomes",
+      s2Lead: "What an agent can be trusted to do:",
+      o1h: "Route",
+      o1p: "Pick the right skill and phase before acting, and re-route at every boundary.",
+      o2h: "Delegate",
+      o2p: "Send bounded leaf work to other agents while the master owns the tree.",
+      o3h: "Remember",
+      o3p: "Keep working state durable and retrieval-first, so it survives a compact.",
+      o4h: "Verify",
+      o4p: "Nothing is done without evidence — the command, the output, the <code>file:line</code>.",
+      pull: 'Delegate the leaves,<br><span class="acc">own the tree.</span>',
+      s3Head: "How it fits together",
+      s3Lead: "How a task flows through the framework — judgment and execution split, then recombined and verified by the master.",
+      n1: "Human brief",
+      n2s: "route the task, pick skill + phase",
+      n3a: "judgment",
+      n3b: "bounded work",
+      n4: "Master combines + verifies",
+      n4s: "a subagent’s result is not evidence — it’s re-checked",
+      n6: "Pre-push guards → CI → human approval",
+      s4Head: "The skills",
+      s4Lead: "Grouped by family. The catalog is generated from <code>SKILL.md</code> frontmatter — never a hardcoded count.",
+      famCountT4: "the operating standard",
+      skillNote: "open a skill for its origin story — the real problem, the mechanism, the evidence, and its stated limits.",
+      s5Head: "Built on",
+      s5Lead: "Two tools the framework calls — not two sibling products.",
+      t1p: "The transport the <code>clink</code> family calls for multi-agent orchestration — the channel between agents.",
+      t2p: "Archives a live page so it replays offline, motion intact — the reference source the design family grounds a frontend in a real website.",
+      s6Head: "Evidence",
+      s6Lead: "Every number carries a source and a limitation. Snapshots are from the day they were recorded.",
+      e1h: "Routing reduces context",
+      e1p: "Switching from injecting the whole skill map to routing + retrieval cut per-injection bytes across a four-injection session.",
+      e2h: "A passing gate is not a clean bill",
+      e2p: "A 94-assertion gate suite passed while a reviewer found raw control bytes leaking. A test confirms the stated contract, not the absence of all other problems.",
+      e3h: "Compaction is not always a shrink",
+      e3p: "Across 10 projects: median pre-compact ~719K, ~85% reduction — but 13 of 113 left the context larger. Context size must be computed from input + cache tokens.",
+      glassK: "Enforcement ladder",
+      glassLim: "each rung checks what the one below can’t",
+      r1w: "inject the directive, open the relevant route",
+      r2w: "name the route and the skill that should apply",
+      r3w: "block an action whose shape is checkable",
+      r4w: "issue reference, tree budget, gate ledger",
+      r5w: "enforce a check in a shared system",
+      r6w: "<b>developer approval</b> — decide what a machine can’t check",
+      honest: "The honest limit: hooks can’t measure judgment. They can’t guarantee TDD or review depth. Local hooks are bypassable with <code>--no-verify</code>. A regex is not a full shell parser. CI and branch rules are stronger than a local hook.",
+      s7Head: "Install",
+      i1h: "Pick what you want",
+      i1p: '<span class="c">npx skills add xenodeve/xeno-skills</span><br>or a single skill with <span class="c">--skill clink-brainstorm</span>',
+      i2h: "Skills + hooks",
+      i3h: "The T4 layer",
+      i3p: "Bring the operating layer into a repo that should run the standard self-contained.",
+      installNote: "Hooks only run in a repo that has <code>.claude/t4.json</code> — that marker is the opt-in.",
+      f1p: "The Agentic Framework — presents the agent-first ecosystem and the standard it runs on.",
+      f2p: "T4 — agent-primary repos that ship with evidence. PRD → issues → TDD → verify.",
+      f3p: "Markdown-driven, static (SSG). No database, no build-time network dependency.",
+      footNote: "xeno-skills · openclink · clone space — a style exploration (Editorial Minimalism × Modern Swiss × Liquid Glass)."
+    }
+  };
+
+  function storeGet(k) { try { return localStorage.getItem(k) } catch (e) { return null } }
+  function storeSet(k, v) { try { localStorage.setItem(k, v) } catch (e) {} }
+
+  /* language — TH is the default (primary); EN only via the toggle */
+  var lang = storeGet('af-mock-lang') || 'th';
+  function applyLang(l) {
+    document.documentElement.lang = l;
+    var md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute('content', I18N[l].metaDesc);
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var v = I18N[l][el.getAttribute('data-i18n')];
+      if (v != null) el.innerHTML = v;
+    });
+    document.querySelectorAll('.tbtn.lang').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.lang === l));
+    });
+    storeSet('af-mock-lang', l);
+  }
+  document.querySelectorAll('.tbtn.lang').forEach(function (b) {
+    b.addEventListener('click', function () { applyLang(b.dataset.lang); });
+  });
+
+  /* theme — default from prefers-color-scheme, then manual choice */
+  var root = document.documentElement;
+  var theme = storeGet('af-mock-theme') || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀' : '☾';
+    storeSet('af-mock-theme', t);
+  }
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  applyLang(lang);
+  applyTheme(theme);
+})();
+</script>
+</body>
+</html>

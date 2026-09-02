@@ -2,7 +2,7 @@
 
 Website that presents and blogs the team's agent-first ecosystem — **xeno-skills** (the hub), **openclink**, **clone space** — and the operating standard they run on. `README.md` is the human-facing overview; this file is the agent's operating manual.
 
-> The **IA spec is a draft** (`docs/superpowers/specs/2026-09-02-site-ia-storytelling-design.md`, `status: draft`): hub-and-spoke single-scroll. Until it is approved, the scaffold IA (`/ecosystem` index + three equal items) is a placeholder. **Setup only until the requirements are final** — no content deep-dives or route restructure before then (developer instruction, 2026-09-02).
+> The **IA spec is approved** (`docs/superpowers/specs/2026-09-02-site-ia-storytelling-design.md`, `status: approved`, developer directive 2026-09-02) and the redesign is implemented in the working tree (hub single-scroll, 13 sections; `/ecosystem` → 308 `/#built-on`; generated skill catalog). **Spec §6 was rewritten 2026-09-03** to the explored direction (`docs/mock/visible-grid/index.html` — Editorial × Swiss × Liquid Glass, TH-primary + EN toggle, dark/light, Visible Grid cut for this round) and was **approved by the developer 2026-09-03** (batch A shipped in issue #12): the visual system may now be built on that direction; implementing it on the site is open follow-up work (see the ledger).
 
 ## Engineering north star
 
@@ -14,6 +14,7 @@ The coding agent is the primary developer of this repo. Docs are the agent's ope
 2. `docs/OPEN-WORK-LEDGER.md` — what is open, tracked and untracked.
 3. `Obsidian-Agentic-Framework/Home.md` — team memory index; open only the notes the task touches.
 4. Route the task through `using-t4` (below).
+5. For code work — load Serena's symbol tools first and prefer them over Read/Grep for navigation (see **Serena** below).
 
 ## Routing — `using-t4` is a standing default
 
@@ -27,6 +28,34 @@ In an agent-primary repo the orchestrator's context window is the scarce resourc
 - **Never delegate the final verification** or a security-boundary change.
 
 `clink-masteragent` is **not wired** (the question was never asked; the default is recorded here rather than left implied).
+
+## Serena — code intelligence (wired)
+
+Wired via `.mcp.json` (stdio, `ide-assistant` context, this repo, TypeScript). Serena exposes LSP symbol tools that navigate code **token-cheaper than Read/Grep** — confirmed working in this repo. For any code task, load them before reaching for built-in Read/Grep on code files.
+
+**Structure-first, drill down (not slurp):**
+1. `get_symbols_overview <file>` — what's in a file without reading it
+2. `find_symbol` (`include_body=False`) — locate + depth before committing
+3. body read (`include_body=True`) — only the symbols you actually touch
+4. `find_referencing_symbols` — cross-file usage with code context, instead of grep-then-open
+5. `get_diagnostics_for_file` — errors/warnings per file
+
+**Prefer Serena over built-ins for code files:** overview/find before Read; `replace_symbol_body` / `rename_symbol` / `insert_*_symbol` / `replace_content` before Edit. Plain `Read`/`Edit` stays fine when the task is small enough that a symbol walk costs more than it saves.
+
+**Caveats (verified in this repo):**
+- Serena line numbers are **0-based**; built-in Read is **1-based** — convert when cross-referencing.
+- `find_referencing_symbols`: pass `relative_path` to scope to one file (fast); omit it to scan the whole repo (slower).
+- Small files / quick lookups: a direct `Read` can be faster than a 3-step symbol walk.
+- Serena's memory store is empty (`list_memories` → `{}`); run its `onboarding` once if you want repo-specific memories recalled in future sessions.
+
+## Other wired MCP servers (task-triggered)
+
+The other four are **not session-start defaults** — reach for them on their trigger, not every turn. *(Only **serena** was runtime-verified this session; the rest describe the configured purpose from `.mcp.json` + tool schemas, not a tested result.)*
+
+- **pal** — second-model analysis via `openclink` → `gateway.9arm.co` (default model `qwen3.6-35b-a3b`). Multi-step layer: `analyze`, `debug`, `codereview`, `secaudit`, `refactor`, `testgen`, `docgen`, `planner`, `thinkdeep`, plus `consensus` (multi-model) and `clink` (bridge to external CLIs: claude/gemini/codex/cursor/opencode). Uses a `step/step_number/total_steps` protocol + `continuation_id` for multi-turn. *Reach for:* an independent second opinion, cross-model consensus, or a scoped review you don't want running through your own context.
+- **playwright** — real-browser automation via `@playwright/mcp` (`navigate/click/type/fill/snapshot/screenshot/console_messages/network_requests/evaluate/tabs/wait`). *Reach for:* the repo's **mandatory E2E frontend gate** (`bun run build` → serve → check each touched route) and anything unit tests can't see (layout, hydration, interaction).
+- **headroom** — context-window compression: `compress` (returns a hash) / `retrieve` (by hash) / `stats`. *Reach for:* shrinking a large tool output or file before reasoning, retrieving it later by hash.
+- **reactbits** — prebuilt React component library: `list_categories` / `list_components` / `search_components` / `get_component` (+ demo). *Reach for:* pulling a ready component instead of writing one from scratch.
 
 ## Dev notification
 
