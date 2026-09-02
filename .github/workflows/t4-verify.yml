@@ -16,6 +16,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # Re-arm the gate without a new commit (a first push to a fresh repo can
+  # race workflow registration and come back as a startup_failure).
+  workflow_dispatch: {}
 
 # A new push supersedes the previous run on the same ref; nothing is gained by
 # finishing a gate for a commit that has already been replaced.
