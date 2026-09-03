@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-09-03 — TH-primary site i18n: Thai default + TH|EN toggle (branch `feat/10-th-en-i18n`, issue #10)
+
+**Goal:** the production site becomes **Thai by default with a TH | EN toggle** in the header — no reload, choice persisted across visits (`af-lang`), `<html lang>` synced — per spec §6 direction (2026-09-03) as prototyped in `docs/mock/visible-grid/index.html`.
+
+**Shipped:**
+- content: sibling `.th.md` files (`content/hub-content.th.md` — 13 sections + frontmatter, `content/ecosystem/{xeno-skills,openclink,clone-space}.th.md`, `content/blog/the-agentic-framework.th.md`); loaders pair them, missing/empty Thai falls back to English per key
+- `src/lib/i18n.ts` — hydration-safe external lang store (initial `th` matches SSR; `getServerSnapshot` supplied so SSG prerenders), `af-lang` persistence, `<html lang>` sync; `src/lib/i18n-react.tsx` `useLang()` binding
+- client views: `hub.tsx`, `article.tsx` (post + ecosystem deep pages), `blog-list.tsx`; `site-header` (TH|EN toggle, `aria-pressed`) and `site-footer` localized; `skill-catalog` chrome strings TH/EN (generated skill data stays English by design)
+- `src/lib/ui-strings.ts` — the two-language chrome string table (not in the issue's change inventory: additive vehicle, disclosed here); single `localized()` fallback rule shared by every component and `mergeHubLocales`; `HubTitleSlug` now derived from `HUB_SECTIONS`
+- pages stay server components; layout `<html lang="th">`
+
+**Review-driven fixes:** nested `<main>` on `/` (new file emitted a second `main`), ecosystem h1 + hub built-on titles now render `titleTh` (spec: h1 via client views — the field was paired and tested but never rendered), double `getEcosystem()` call hoisted.
+
+**Validation:** `bun test` 29/0; `bun run verify` green (lint + typecheck + build). Production serve + curl: `/`, `/blog`, `/blog/the-agentic-framework`, `/ecosystem/{openclink,clone-space}` → `lang="th"` with Thai bodies/titles in the SSG HTML; JS payload carries both languages + `af-lang`; `/ecosystem` still 308 → `/#built-on`; build table shows no `.th` routes.
+
+**Not yet:** push/PR (developer decision — no CI backstop, so the author-verify claim travels with the push); final visual confirmation of the in-page toggle is the developer's (no headless browser in this environment, per issue #10 acceptance #4).
+
+---
+
 ## 2026-09-02 — repo live on GitHub + CI billing-lock recorded (branch `main`, commits `8f54c07` → `29bdb8a`)
 
 **Goal:** ship the local scaffold to GitHub with the T4 enforcement tiers live, and record the account-level ceiling honestly.

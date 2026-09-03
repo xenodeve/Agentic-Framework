@@ -2,56 +2,175 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  /* 60-30-10 · dark elevation — depth from lighter surfaces, not shadows */
-  --bg: #09090b; /* 60% dominant neutral */
-  --surface: #18181b; /* 30% secondary surface */
-  --surface-2: #27272a; /* elevated surface */
-  --text: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --edge: rgba(255, 255, 255, 0.08);
-  --accent: #a3e635; /* 10% accent */
-  --accent-contrast: #09090b;
+  /* DESIGN.md — Editorial Minimalism × Modern Swiss × Liquid Glass × Visible Grid */
+  /* paper / ink / one signal accent — elevation by hairline + whitespace, never shadow */
+  --paper: #f4f2ed; /* canvas — warm off-white, not pure white */
+  --paper-deep: #edebe4; /* recessed panel / tint band */
+  --ink: #131311; /* primary text, dark hairlines */
+  --muted: #6b6862; /* secondary body, captions */
+  --faint: #9a968d; /* metadata, faint labels */
+  --line: rgba(19, 19, 17, 0.1); /* hairline — grid rails, full-bleed rules, borders */
+  --line-strong: rgba(19, 19, 17, 0.18); /* registration marks, hover rails */
+  --accent: #e8461b; /* single accent — index numbers, links, one CTA, live dot */
+  --accent-contrast: #f4f2ed;
+  /* liquid glass — floating layers only (nav, popup, modal) */
+  --glass-tint: rgba(244, 242, 237, 0.6);
+  /* type — display grotesque / neo-grotesque body / mono labels */
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-geist-sans), var(--font-anuphan);
+  --font-mono: var(--font-jetbrains-mono);
+  --r-card: 8px;
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-background: var(--bg);
-  --color-foreground: var(--text);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-muted: var(--text-muted);
-  --color-edge: var(--edge);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-space-grotesk);
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-surface: var(--paper-deep);
+  --color-surface-2: var(--paper-deep);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-edge: var(--line);
+  --color-edge-strong: var(--line-strong);
   --color-accent: var(--accent);
   --color-accent-contrast: var(--accent-contrast);
   /* Major Third type scale (1.25x, base 16px) */
-  --text-h1: 3.815rem; /* hero title */
-  --text-h2: 3.052rem; /* page title */
-  --text-h3: 2.441rem; /* major section */
-  --text-h4: 1.953rem; /* section header */
-  --text-h5: 1.5625rem; /* card title */
-  --text-h6: 1.25rem; /* subtext */
+  --text-h1: 3.815rem;
+  --text-h2: 3.052rem;
+  --text-h3: 2.441rem;
+  --text-h4: 1.953rem;
+  --text-h5: 1.5625rem;
+  --text-h6: 1.25rem;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
-  line-height: 1.5; /* body legibility: 150% */
+  line-height: 1.6;
 }
 
 h1,
 h2,
 h3 {
-  letter-spacing: -0.025em; /* headline tracking: -2.5% */
-  line-height: 1.12; /* headline leading: ~112% */
+  letter-spacing: -0.03em; /* display tracking: -0.02…-0.04em */
+  line-height: 1.1;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* mono label tier — nav, section tags, index numbers */
+.label {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+/* mono metadata tier — index 01/02, dates, counts */
+.metadata {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--faint);
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* --- the visible grid (signature) ------------------------------------- */
+
+/* vertical rails framing a centered column */
+.grid-rails {
+  border-inline: 1px solid var(--line);
+}
+
+/* full-bleed horizontal rule at a section/turn boundary */
+.full-bleed-rule {
+  position: relative;
+}
+.full-bleed-rule::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50vw;
+  width: 200vw;
+  height: 1px;
+  background: var(--line);
+  z-index: -1;
+}
+
+/* + registration mark at a rail × rule intersection */
+.registration-mark {
+  position: absolute;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--line-strong);
+  user-select: none;
+}
+
+/* optional crosshatch field — hero only */
+.crosshatch {
+  background-image:
+    linear-gradient(to right, rgba(19, 19, 17, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(19, 19, 17, 0.06) 1px, transparent 1px);
+  background-size: 8px 8px;
+  mask-image: radial-gradient(circle, #000 25%, transparent 72%);
+}
+
+/* liquid glass — floating layers only (nav, popup, modal) */
+.glass-layer {
+  background: var(--glass-tint);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid var(--line);
+}
+
+/* outline wordmark closer (footer) */
+.wordmark-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--line-strong);
+}
+
+/* typography plugin (narrative sections) — map prose onto the paper system */
+.prose-light {
+  --tw-prose-body: var(--ink);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-links: var(--accent);
+  --tw-prose-code: var(--ink);
+  --tw-prose-hr: var(--line);
+  --tw-prose-th: var(--ink);
+  --tw-prose-td: var(--muted);
+  --tw-prose-bullets: var(--faint);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-quotes: var(--muted);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-captions: var(--muted);
+}
+
+/* motion — subtle, 150–300ms ease-out; grid lines are static */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

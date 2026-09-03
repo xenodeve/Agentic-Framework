@@ -1,0 +1,147 @@
+{
+  "families": {
+    "design": {
+      "label": "Design",
+      "originStory": {
+        "problem": "AI design output keeps collapsing to the same patterns — dark slate, cyan/purple gradients, default Inter, 3D blobs, uniform three-column cards, cliché copy — because \"AI has no inherent taste and defaults to regression to the mean.\" The design family exists to push past that default.",
+        "attempt": "A pipelined suite run in order: design-setup (pick a direction through hard decision gates) → design-rules (numeric typography / color / spacing rules) → design-psychology (3-brain, MAYA, chunking) → design-audit (30-second first-impression + LIFT).",
+        "effectiveness": "The family converts external design research (Chase AI, Chris McCoy, Ran Segall, Satori Graphics) into practice rules. There is no xeno-skills metric showing how much it reduces generic output; the individual rules carry their own sources.",
+        "source": "skills/design/ (design-setup entry)"
+      }
+    },
+    "multi-agent": {
+      "label": "Multi-agent"
+    },
+    "t4": {
+      "label": "T4"
+    }
+  },
+  "skills": {
+    "ask-xeno": {
+      "originStory": {
+        "problem": "The top-of-library router. If it restated each family's details, it would create a second copy that drifts from the family entries — and \"a skill invoked because it was the nearest one is worse than none.\"",
+        "attempt": "Deliberately thin: a four-row table pointing at the family entries (using-t4, using-clink, using-design, karpathy-guidelines) and nothing else, with a stated fallback when no skill fits.",
+        "effectiveness": "No numeric evidence in SKILL.md itself — the rationale is drift-prevention. A byte budget is cited in the companion brief but not in the skill file; verify against xeno-skills/tests/ before citing it.",
+        "source": "skills/ask-xeno/SKILL.md"
+      }
+    },
+    "karpathy-guidelines": {
+      "originStory": {
+        "problem": "Four guidelines (think before coding, simplicity-first, surgical changes, goal-driven execution) are prose an agent is trusted to follow. Two measured incidents in the Surgical-Changes rule: two .pyc files rode ~20 commits on a branch because an importlib bytecode cache sat beside the source and showed up in `git status` as \"files I changed\"; and a second, never-requested list entry was added and \"disclosed\" in the PR body — but \"disclosing an extra change does not authorise it.\"",
+        "attempt": "Explicit sub-rules: \"If you notice something incomplete, mention it — don't complete it\"; every staged file must trace to the request; read the file list, not just the diff, because `git add -A` stages what the tool wrote as easily as what the user wrote.",
+        "effectiveness": "The file concedes §3 already has one recorded failure, found only because a session went wrong and was reconstructed afterwards. Marked \"Measured\" but with no dates and no failure denominator; a per-session skill-feedback issue is the standing mechanism.",
+        "source": "skills/karpathy-guidelines/SKILL.md §Surgical Changes"
+      }
+    },
+    "using-clink": {
+      "originStory": {
+        "problem": "The real tool name is `mcp__<server>__clink` where `<server>` is a per-machine key, not a fixed server name. On 2026-08-20 one machine reported `pal: openclink` — the server had been renamed to `openclink` but the registration key stayed `pal`. If an agent reads the rename and \"fixes\" the tool to `mcp__openclink__clink`, it resolves to nothing — and breaks all four skills in the family at once (issue #204).",
+        "attempt": "Resolve the prefix before every call with `claude mcp list` (read the key left of the colon) instead of guessing or editing the string; the enforcement hooks already use a rename-tolerant regex `^mcp__[A-Za-z0-9_.-]+__clink$` that the prose did not.",
+        "effectiveness": "Incident #204 is the empirical proof of the problem (observed, dated). The fix is honest about its own limit — \"both spellings are wrong on some machine, so the fix is to stop spelling it\" — with no number for how much resolve-first cut failures.",
+        "date": "2026-08-20 (incident #204)",
+        "source": "skills/multi-agent/using-clink/SKILL.md"
+      }
+    },
+    "clink-masteragent": {
+      "originStory": {
+        "problem": "The orchestrating agent once chose a model for a review panel from a recollection of an earlier failure rather than any score. Checked against the real data, the chosen model was weaker on the axis the work actually needed — it only won on hallucination-resistance (which the prompt had already closed by forbidding tools) but trailed by 3.6 composite and nearly 2× on agentic ability.",
+        "attempt": "The full score table (84 model+effort rows) lives in the skill file itself, not a separate document to open — \"Falling from a recommendation to the evidence is a scroll, not a decision\" — plus a rule not to rank on the composite index alone (only 34% of it is measured tool-in-the-loop).",
+        "effectiveness": "Two dated incidents: on 2026-08-05 a worker at `gpt-5.6-luna high` sent two leaves at once — the code leaf returned a good test, the prose leaf returned 11 assertions that were `grep`s of sentences the worker had invented itself; and a corrected audit detector still flagged wrong, first flagging 30 of 32 suites when the real number was 11. A case list to make model selection systematic is \"Not yet written\" (issue #74).",
+        "date": "2026-08-05 (two incidents)",
+        "source": "skills/multi-agent/clink-masteragent/SKILL.md"
+      }
+    },
+    "clink-brainstorm": {
+      "originStory": {
+        "problem": "Convergence of many agents does not mean the answer is right. Three dated incidents: on 2026-08-11 a prompt that offered its own answer led three agents from three model families all to \"displacement\" — until the adversarial round made them reverse, one writing `self_critique: I walked into the offered displacement slot`; on 2026-08-13 a panel unanimously read \"rules were followed\" as \"is the code quality good\" when the developer meant \"did the workflow run the process\" — unanimous agreement on the wrong reading; and on 2026-08-11 an agent forbidden to read files answered like `chat` until one broke the instruction, read 11 real files (351s, 426k input tokens), and withdrew its own proposal — the only round that produced a valuable answer.",
+        "attempt": "A \"prompt audit\" before the real question (does the prompt offer the answer, label an option, or state the asker's position?) and a forced adversarial round after convergence, tailored to each agent's cognitive lens.",
+        "effectiveness": "All three incidents are dated and detailed in the file. \"The tell is that there is no tell\" — a prompt with clear constraints, named files, three options and a word count still fails on a single ambiguous noun, so the audit must check the terms, not prompt quality in general. No success rate yet for the new prompt-audit (added after these incidents).",
+        "date": "2026-08-11, 2026-08-13",
+        "source": "skills/multi-agent/clink-brainstorm/SKILL.md"
+      }
+    },
+    "clink-subagents": {
+      "originStory": {
+        "problem": "A dated 2026-08-11 incident: the orchestrator implemented the whole clink client (parser, agent, config, discovery — 4 files) delegating nothing, even though the repo's CLAUDE.md opens with \"delegation is the default, not the optimisation\" and the developer had just called /clink-subagents in the previous message. \"The gap is not knowledge... the selection step did not run; it never ran\" — the problem is the absence of a moment forcing a delegate/keep decision, not ignorance.",
+        "attempt": "Before the first edit of a multi-leaf task, name each leaf and record a one-line delegate/keep decision with its reason (so \"keep\" is auditable), plus a token-economics formula comparing \"what I will read and think myself\" against \"prompt + output + verification\" to decide systematically instead of by feel.",
+        "effectiveness": "More dated incidents: 2026-08-05 a shared model/effort sent two leaves — the prose leaf returned assertions of sentences the worker invented (so \"verifiable\" must mean observable behaviour, not checkable-looking); 2026-07-31 real latency on T4-Fastwork (codex 401s/529s, cursor 108s, antigravity 55s for read-heavy work, issue #55); 2026-07-16 token economics measured — summarising a 30,696-char task itself used ~8.5k tokens vs 240–464 delegated, with a difficulty ladder (R0–R3) marking where each client breaks (qwen at R2, antigravity at R3, codex through R3).",
+        "date": "2026-08-11, 2026-08-05, 2026-07-31, 2026-07-16",
+        "source": "skills/multi-agent/clink-subagents/SKILL.md"
+      }
+    },
+    "clink-debug": {
+      "originStory": {
+        "problem": "No dated incident in the file itself. The named mechanism is \"hypothesis laundering\": a worker proposes a plausible hypothesis, it passes a review that was not actually independent, and returns as \"panel-backed certainty\" — worse than a single agent debugging alone, because \"the ceremony manufactures confidence that nothing in the process earned.\"",
+        "attempt": "Fixed seat rules: Promote / Decide / Close belong to the orchestrator only (never a subagent); Falsify / Repair must use a fresh lineage (no continuation_id, prefer a different client); and the agent that proposed a hypothesis may not falsify or repair its own.",
+        "effectiveness": "No numeric evidence or dated incident in this SKILL.md — only the mechanism's rationale (unlike clink-masteragent and clink-brainstorm, which carry dated incidents). A sibling file notes \"Every defect found in these skills so far came from a session going wrong\", implying the same observation origin, but this file cites no specific case.",
+        "source": "skills/multi-agent/clink-debug/SKILL.md"
+      }
+    },
+    "using-t4": {
+      "originStory": {
+        "problem": "This file used to be injected verbatim at every session start and on every compact at 8,974 bytes against a 9,000-byte cap — 26 bytes of headroom — a fact recorded in the file's own MAINTAINERS comment. Trimming it risks a second rule forcing five exact phrases to stay in the file (Route first · Red flags · phase boundary · does not discharge · load the current one), so a size cut could silently delete a phrase a contract test demands.",
+        "attempt": "Move the real injection mechanism to hooks/t4-directive.md (~1.3KB) carrying only the five core phrases; turn using-t4/SKILL.md into a file the agent loads only when routing (no longer injected verbatim) — issue #182, guarded by tests/hooks/test-dispatcher-content.sh which re-checks the five phrases on every edit.",
+        "effectiveness": "The 8,974B/9,000B figures are real and recorded in the file, and a contract test genuinely guards the content (test-dispatcher-content.sh) — a rare case in this family with both the symptom (a near byte-overflow) and the re-occurrence guard (a test). No data on how many sessions the verbatim injection actually broke before the fix.",
+        "source": "skills/t4/using-t4/SKILL.md, issue #182"
+      }
+    },
+    "t4-project-bootstrap": {
+      "originStory": {
+        "problem": "Dense with referenced incidents: #244 — /ask-xeno was called at session start but never actually entered using-t4, so thousands of words of docs went out without ever loading t4-bro (the language standard); #84 — before the fix, executables called by absolute path slipped past the PreToolUse gate entirely, so `\"C:\\Program Files\\GitHub CLI\\gh.exe\" pr create` bypassed the PR-needs-issue rule with no warning; #129 — an agent wrote \"this tool has never been installed or run\" in a research doc when the tool (bun) was in fact installed at ~/.bun/bin/, just not on PATH; and measured 2026-08-04 on a bootstrapped repo, only 8 of the 19 documented labels actually existed (needs-triage among the missing).",
+        "attempt": "Three prerequisites checked before bootstrap begins (load your own discipline before reading the repo, resolve tools by absolute path before concluding they are missing, ask the developer about companion ecosystems instead of guessing) plus a step 11 forcing you to \"say the result out loud even when it passes\" — \"a repo with the docs and no hooks looks bootstrapped\" — with a real `gh label create` that reports which labels were created, which existed, which were skipped.",
+        "effectiveness": "All incidents above carry an issue number or date in the file itself — a higher evidence grade than most in this family. No figure yet on how often the new checklist (steps 1–3, step 11) actually prevents recurrence; only that the problems happened and the process was corrected.",
+        "date": "2026-08-04 (label sync); #244 #84 #129 by issue number",
+        "source": "skills/t4/t4-project-bootstrap/SKILL.md, issues #244 #84 #129"
+      }
+    },
+    "t4-agent-memory": {
+      "originStory": {
+        "problem": "The skill-usage feedback log (t4-skill-log hook) can \"vanish quietly\" when a branch is cut from a base older than the hook's install — measured in the file: of 52 Skill-tool invocations in one session the log held only 11, with a contiguous 3-invocation gap bracketed exactly by two `git switch` commands (a branch cut from an older base has no hook). Two wrong hypotheses were recorded before the real cause was found (the logger filtering non-library skills, a 32KB argv cap eating data) — both disproven on inspection.",
+        "attempt": "Treat an \"absence in the log\" as `unknown`, not `no`, until you have checked the hook existed in that window (`git log --diff-filter=A -- .claude/hooks/t4-skill-log` to find where the denominator starts); and separate what a hook can verify — the denominator (which skills were invoked) — from what no hook can verify — whether a rule was actually followed, which depends on agent discipline.",
+        "effectiveness": "A real measurement in the file (52 vs 11) with a dated 3-session table: 2026-08-14 neither a tracker issue nor a local note; 2026-08-17 a tracker issue (\"owed\"); 2026-08-19 both — but the file concedes \"The third row is not a success. The report was produced because something external kept the session going, not because reaching the end produced it\" — still not confident the mechanism solved it.",
+        "date": "2026-08-14, 2026-08-17, 2026-08-19",
+        "source": "skills/t4/t4-agent-memory/SKILL.md"
+      }
+    },
+    "t4-dev-workflow": {
+      "originStory": {
+        "problem": "The most dated-incident skill of the 19. Four clearest: (1) #78 vs #86, same day minutes apart — #78 skipped the pre-plan survey and the added clause grew the injected dispatcher to 9,033B against a 9,000B cap, while #86 surveyed first and budgeted the addition; \"the difference was not diligence\" — #86's issue carried the survey as a section; (2) 2026-08-19 — `gh issue close` fired twice while the PR was still unmerged, chained with `&&` to a command that printed \"not mergeable\" but whose exit code was never checked; (3) 2026-08-11 — merging a parent PR with `--delete-branch` auto-closed a child PR on the same base, unrecoverable (`gh pr reopen` failed, the base branch was gone); (4) 2026-08-14 — cost-per-task figures from Artificial Analysis were cited in the wrong lane twice in a row (measured on a metered API lane, real users on flat subscription), corrected by the developer twice.",
+        "attempt": "Point-specific rules per incident: survey becomes an action trigger (before the first thing you write down that you will change), not a phase boundary; \"a precondition of an action must be read as a separate step, never chained with &&\"; always retarget a child PR to main before merging the parent; ask \"what unit was this number measured in\" before deciding on it.",
+        "effectiveness": "Every incident above carries an issue number or date, and the file records more — #242 (2026-08-18): a skill flagged disable-model-invocation disappears from the listing with no signal, so an agent assumed it was absent and wrote the work itself; and a PR whose `T4-Gates` trailer was well-formed yet violated a deeper rule (no checkable fact supporting any single gate skip). The file's lesson: \"A permissive guard beside a strict rule relaxes the strict rule in practice unless the difference is stated where the rule is.\" No success rate for the full set of new rules — only that the problems happened and are recorded.",
+        "date": "2026-08-11, 2026-08-14, 2026-08-17, 2026-08-18, 2026-08-19",
+        "source": "skills/t4/t4-dev-workflow/SKILL.md"
+      }
+    },
+    "t4-afk": {
+      "originStory": {
+        "problem": "A gate deferred to the end of a batch instead of run per item is the same as not running it — a measured batch that deferred /code-review and /scrutinize to lump with 62 commits found 3 defects, all already committed, one written by the same session hours earlier, and 2 of 3 fixed only after the branch had already merged.",
+        "attempt": "Change the trigger from a \"phase boundary\" (hard to catch, since nobody notices the boundary was crossed) to a catchable cue — \"the first item that changes a file\" — and require the end-of-batch digest to \"enumerate\" every gate as ran/not-run/n-a per item, not per batch, because one answer covering 50 commits passes the \"state every gate\" rule without lying a single word but tells you nothing.",
+        "effectiveness": "A numeric measurement (3 defects from 62 commits) but no date in this file and no denominator on how often such batches occurred before the problem surfaced. Structurally it references t4-dev-workflow's #78/#86 incident (the phase-boundary trigger that does not fire), but that is not its own incident.",
+        "source": "skills/t4/t4-afk/SKILL.md"
+      }
+    },
+    "t4-bro": {
+      "originStory": {
+        "problem": "The rule should apply to every message the developer reads, but the file records that it itself was skipped on 2026-08-14 — with the skill already loaded, a long design breakdown went out in English; the developer wrote \"talk in Thai\" twice and invoked /t4-bro a third time before it was followed. \"The rule was not skipped for a stated reason; it was never applied, which is worse, because there is no decision to review.\" A separate 2026-08-12 incident was about answer shape, not language: four questions answered with `##` headings + two tables + bold on nearly every line, even though every word-level term was correct.",
+        "attempt": "Name a catchable real trigger instead of an every-message rule (which equals no trigger) — \"the first prose reply after a stretch of tool work\", the point where the agent has just read English output and tends to keep writing in English — plus a before/after table of real sentences from this repo's own sessions to teach the register.",
+        "effectiveness": "The 2026-08-14 incident is the most dated and detailed in the family (two developer corrections + one re-invocation, one session). The file concedes the shape rule was only just fixed with worked examples (PR #140, 2026-08-12) and that the far-clearer language rule still failed — \"A rule that is unambiguous and still not applied has a trigger problem, not a clarity problem.\" No data yet on whether the new tool-work→prose trigger actually prevents recurrence; it was added after this incident.",
+        "date": "2026-08-14 (language), 2026-08-12 (shape, PR #140)",
+        "source": "skills/t4/t4-bro/SKILL.md"
+      }
+    },
+    "design-setup": {
+      "originStory": {
+        "problem": "No dated incident. The named problem is a recurring quality pattern (\"AI Slop\"): AI design output keeps landing on the same patterns — generic dark slate modes, cyan/purple gradients, default Inter fonts, 3D blobs, uniform 3-column cards, and cliché copy — with the mechanism stated directly: \"AI has no inherent taste and defaults to regression to the mean.\"",
+        "attempt": "A 3-phase build sequence with three hard decision gates the agent may not cross on its own (pick 1 of 5 aesthetic directions → 1 of 3 body-layout variants → the hero image from a 2-pass generation), and exploratory code kept in a separate /design-exploration/ directory that must not touch production routes until approved.",
+        "effectiveness": "No numeric evidence in the SKILL.md itself — it converts external research (Chase AI, Chris McCoy) into rules, with no xeno-skills incident or metric showing how much the hard gates actually reduce \"AI Slop\". Further reference in the design references/ library.",
+        "source": "skills/design/design-setup/SKILL.md"
+      }
+    },
+    "design-rules": {
+      "inheritFrom": "design-setup"
+    },
+    "t4-engineering-records": {
+      "inheritFrom": "t4-dev-workflow"
+    }
+  }
+}

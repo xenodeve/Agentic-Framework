@@ -1,7 +1,8 @@
 ---
 title: "Agentic Framework website — hub-and-spoke, single-scroll IA"
-status: draft
+status: approved
 date: "2026-09-02"
+approved: "2026-09-02 — developer directive: full redesign per this spec + the docs/ content sources"
 ---
 
 # Agentic Framework website — information architecture & content design
