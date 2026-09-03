@@ -1,0 +1,158 @@
+{
+  "generatedFrom": "D:/Github/xeno-skills/skills",
+  "sourceCommit": "8afd16905f741f64387f600039598c48983f9cb2",
+  "generatedAt": "2026-09-02T06:29:33.660Z",
+  "count": 19,
+  "skills": [
+    {
+      "slug": "ask-xeno",
+      "description": "The top of this library. Ask it which family your task belongs to, then take the family's own route from there. Reach for it when you are unsure which skill applies, when a task spans families, or when you suspect a skill exists for this and cannot name it. Deliberately thin — it names the family entries and nothing else, so it stays cheap enough to carry everywhere. Triggers include \"is there a skill for X\", \"which skill should I use\", \"how do we do X here\", and any moment you are about to improvise a process this library already encodes.",
+      "triggers": [],
+      "family": null
+    },
+    {
+      "slug": "clink-brainstorm",
+      "description": "Fan out a question to multiple independent AI agents (Gemini/Antigravity, OpenAI/Codex, Cursor, and optionally a further model of your choice) through PAL's clink tool, then synthesize their answers into one recommendation. Use for multi-agent brainstorming, getting a second/third opinion on a design or plan, sanity-checking a decision across model families, or when the user says \"ask the other AIs\", \"brainstorm with multiple models\", or \"get other perspectives\".",
+      "triggers": [],
+      "family": "multi-agent"
+    },
+    {
+      "slug": "clink-debug",
+      "description": "The single home for delegating a bug hunt to clink agents — read it before sending any failure to clink-subagents or clink-brainstorm, not only a bug that already survived a pass. It routes a small bug to one cheap worker and escalates only what survives, defines the evidence that must travel with it, and enforces that no agent which produced a hypothesis may falsify or repair it. Use when a bug is about to be delegated, is still open after a worker looked at it, has two agents disagreeing about its cause, or came back after a fix landed.",
+      "triggers": [],
+      "family": "multi-agent"
+    },
+    {
+      "slug": "clink-masteragent",
+      "description": "What a master agent owns and can never delegate, and how to pick the model for a delegation from measured scores instead of memory. Use before any clink delegation, and whenever choosing between models, efforts, or clients — including \"which model should review this\", \"is the cheap one good enough\", \"should I escalate the effort\". Carries the full per-axis score table for every reachable model+effort inline, generated from the structured source, so the choice is made against data rather than recollection. Pairs with clink-subagents (handing out work), clink-brainstorm (convening judgment), and clink-debug (hunting a bug).",
+      "triggers": [],
+      "family": "multi-agent"
+    },
+    {
+      "slug": "clink-subagents",
+      "description": "Delegate a well-scoped chunk of WORK (implementation, refactor, bulk transform, focused research, first-draft) to Codex (GPT-5.6) or Antigravity (Gemini) as a subagent via PAL's clink tool — to offload effort, parallelize, or save your context. Use when you have a self-contained, verifiable subtask a cheaper agent can do while you orchestrate. NOT for gathering opinions/consensus (use clink-brainstorm) and NOT for orchestration/judgment (keep that yourself). Covers which agent fits which task (grounded in Artificial Analysis index data + a local benchmark), how to prompt them, and the mandatory verify-everything discipline.",
+      "triggers": [],
+      "family": "multi-agent"
+    },
+    {
+      "slug": "design-audit",
+      "description": "Web design & portfolio audit framework based on Ran Segall's (Flux Academy) 30-Second First Impression Test and Satori Graphics' LIFT System. Evaluates UIs for instant clarity, visual hierarchy, work visibility, trust signals, LIFT composition flow, and conversion readiness.",
+      "triggers": [
+        "/design-audit",
+        "design-audit",
+        "design audit",
+        "audit portfolio",
+        "audit web UI",
+        "review portfolio",
+        "lift audit"
+      ],
+      "family": "design"
+    },
+    {
+      "slug": "design-psychology",
+      "description": "Web UX & Conversion Psychology framework based on Self-Made Web Designer (Chris McCoy) and Ran Segall (Flux Academy). Implements 3-Brain Persona Alignment (Survival, Emotional, Rational), Mental Model Layout Familiarity, MAYA Principle pattern breaks, Cognitive Chunking (3-4 item Working Memory Rule), Luxury White Space (\"Space is Wealth\"), Signature Niche Positioning, and the Oliver Smithies \"Wander Off\" experimental directive.",
+      "triggers": [
+        "/design-psychology",
+        "design-psychology",
+        "design psychology",
+        "ux psychology",
+        "maya principle",
+        "cognitive chunking"
+      ],
+      "family": "design"
+    },
+    {
+      "slug": "design-rules",
+      "description": "Universal micro-UI/UX design & engineering rules based on Kole Jain, Chris McCoy, Ran Segall, and Satori Graphics' frameworks. Enforces Pro Typography hacks (-2% tracking, Major Third 1.25x scale, 150% body line-height), 60-30-10 color balance, Material opacity modulation, 12/8/4 column grids, 8pt spacing rhythm, 4-state buttons, scrolling CTA frequency, progressive backdrop blur overlays, Luxury White Space, and the LIFT System with 6 Levels of Visual Flow.",
+      "triggers": [
+        "/design-rules",
+        "design-rules",
+        "design rules",
+        "ui rules",
+        "typography hack",
+        "micro UI rules",
+        "luxury white space",
+        "lift system"
+      ],
+      "family": "design"
+    },
+    {
+      "slug": "design-setup",
+      "description": "Complete end-to-end web design setup & prototyping framework faithful to Chase AI's methodology with production robustness gates. Automatically enforces design-rules (micro-UI typography hacks, 4pt/8pt grid, dark mode surface elevation, 4-state buttons) and legend mastery principles (unconventional inspiration, signature calling cards). Interactively guides users to cultivate design taste, enforces preflight checks, decision gates, exploratory code isolation, 4-part prompts, 3-phase build sequence, and token commit finalization.",
+      "triggers": [
+        "/design-setup",
+        "design-setup",
+        "design setup",
+        "initialize web design",
+        "setup website UI",
+        "overhaul web design"
+      ],
+      "family": "design"
+    },
+    {
+      "slug": "karpathy-guidelines",
+      "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.",
+      "triggers": [],
+      "family": null
+    },
+    {
+      "slug": "t4-afk",
+      "description": "Use when the developer hands the agent a bounded batch to run unattended in a T4-team repo (T4 Labs / Slow-Inc) and steps away — \"AFK\", \"run this while I'm away\", \"just handle it / take it from here\", \"clear the ready-for-agent queue\", \"keep going without me\", or any long autonomous run where no human will approve each decision. Covers the preflight scope-lock, the may-decide-alone vs must-park boundary, the safe per-item loop, the stop-and-park conditions, and how to land the batch so the repo is never left broken or silently changed.",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "t4-agent-memory",
+      "description": "Use when working as the primary coding agent in a T4-team repo (T4 Labs / Slow-Inc) and you need durable memory across sessions and context-compaction — at session start (what's the open work, what did past sessions decide), after shipping or learning something worth persisting, or when open work is scattered across issues, ADRs, and MD files. Covers the team memory vault, the open-work ledger, the ship log, the survey-provenance cache, and Serena code memories. Triggers include \"where did we leave off\", \"record what I shipped\", \"read the project memory\", \"what's still open\".",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "t4-bro",
+      "description": "Use when writing anything the developer reads — a reply, a status update, an explanation, a question, a summary of what you just did. Sets the register — plain Thai at a working developer's level, English kept only where it earns its place (identifiers, the developer's own vocabulary, precision nothing else carries), and never at the cost of accuracy. Load it in a T4 repo alongside whatever skill is doing the work; it governs how you say the answer, not what the answer is. Triggers include reporting a result, explaining a mechanism, proposing a plan, asking the developer a question, and any moment you notice you are about to write a term you would have to teach.",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "t4-dev-workflow",
+      "description": "Use when planning or implementing a feature/change in a T4-team repo (T4 Labs / Slow-Inc) — deciding how to go from idea to shipped code, filing or updating a GitHub issue or PRD, writing a bilingual (Thai + English) issue/PR body, opening a PR, or closing an issue. Covers the grill→PRD→issues→TDD pipeline, the PRD→issues→PR gate, the auto-triggered skill map, triage labels, and the issue lifecycle. Triggers include \"let's build X\", \"file an issue for this\", \"write the PRD\", \"open a PR\", \"what labels\", \"how do we work here\".",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "t4-engineering-records",
+      "description": "Use when working in a T4-team repo (T4 Labs / Slow-Inc) and something notable just happened that a future agent will need the \"why\" of — you fixed and validated a bug, made a hard-to-reverse architectural decision, shipped a system-affecting change, or hit a bug whose lesson is worth keeping. Helps pick the right record (post-mortem vs ADR vs system-impact entry vs bug-case-catalog) and write it so it stays a reliable index (file:line, commit SHAs, validated-only). Triggers include \"write a post-mortem\", \"record this decision\", \"log this change\", \"should this be an ADR\".",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "t4-project-bootstrap",
+      "description": "Use when starting, scaffolding, or setting up a new repository for the T4 team (T4 Labs / Slow-Inc) — or retrofitting an existing one — so an agent-primary repo gets the team's standard operating layer (domain glossary, product brief, decision records, durable memory, dev workflow) in one pass instead of hand-copying docs from a sibling repo. Triggers include \"set up a new T4 project\", \"scaffold the docs/conventions\", \"add CLAUDE.md + docs/agents\", \"bootstrap the governance layer\", \"port the MangaDock conventions\".",
+      "triggers": [],
+      "family": "t4"
+    },
+    {
+      "slug": "using-clink",
+      "description": "The entry point for delegating to another AI CLI agent through PAL's clink tool. Decides which of the four clink skills you actually want before you spend a call — executing a scoped subtask, convening a panel for judgment, hunting a bug across agents, or deciding who may do the work at all. Reach for it whenever you are about to delegate, whenever you are choosing between a subagent and a panel, and whenever a delegation came back wrong and you are not sure the routing was right. Triggers include \"delegate this\", \"ask the other AIs\", \"get a second opinion\", \"run this in parallel\", \"which model should review this\".",
+      "triggers": [],
+      "family": "multi-agent"
+    },
+    {
+      "slug": "using-design",
+      "description": "Master Antigravity Web Design Suite. Coordinates 4 specialized design skills (design-setup for 0->1 prototyping, design-rules for micro-UI CSS/Tailwind rules & LIFT system, design-audit for 30-second first impression reviews, and design-psychology for 3-brain personas & luxury white space). Includes full research video transcript library.",
+      "triggers": [
+        "/design",
+        "design",
+        "web design",
+        "design suite"
+      ],
+      "family": "design"
+    },
+    {
+      "slug": "using-t4",
+      "description": "Use at the start of any task in a T4-team repo (T4 Labs / Slow-Inc) to decide which T4 skill applies — setting up the repo, session-start memory and open-work, planning or shipping a feature, or recording a bug/decision/change — and to hand off to the companion skill ecosystems the team runs alongside (superpowers, matt pocock, 9arm). The entry-point map for the t4-* skill family; consult it before acting when you're unsure which T4 discipline or which external skill a task needs. Triggers include working in a repo whose CLAUDE.md points here, \"how do we work in this repo\", \"which T4 skill\", and starting a session in a Slow-Inc repo (MangaDock, T4-Fastwork).",
+      "triggers": [],
+      "family": "t4"
+    }
+  ]
+}
