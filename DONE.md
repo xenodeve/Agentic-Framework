@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-09-03 — DESIGN.md re-grounded as this site's design document (branch `docs/14-design-md-ours`, issue #14)
+
+**Goal:** make the untracked root DESIGN.md **ours** — it described a different product ("T4 Labs" chat UI: composer, chat turns, signal-orange accent, Visible Grid as signature), contradicted the approved direction (spec §6), and its references were dead in this repo. Batch A (#12) left it untracked pending exactly this decision.
+
+**Shipped:**
+- tokens re-anchored to approved spec §6 — paper `#f3f2ec` / ink `#131310` / ultramarine `#2233c9` (dark `#8f9bff`); the measured AA note kept (`--faint` must equal `--muted` — `#74726b` = 4.29 fails on this paper)
+- Visible Grid signature section → explicit **cut note** (no column rails, no `01–12` rulers, no registration marks, no GRID button / key `G`) per spec §6 — revisit after implementation
+- components rewritten to the site's real surfaces: glass sticky nav + TH|EN toggle (`af-lang`, SSG `lang="th"`), hero mass split (spec §9.1), generated skill catalog, SSR'd deep-linkable origin-story popup, evidence blocks with date+source+limitation; chat-product components removed
+- dead references removed (`../Requirement.MD`, `docs/design/expensive-minimalism.md`); provenance → approved spec §6 + live `docs/mock/` paths
+- font honesty note: target Archivo + Bai Jamjuree (spec §6) vs committed groundwork stack (Space Grotesk + Anuphan, `src/app/layout.tsx`) — landing rides the open visual-implementation follow-up
+
+**Validation:** docs-only diff (`git show --name-only ecaac9c` = DESIGN.md only) — `bun run verify` green on the branch with a fresh `.next/` cache.
+
+---
+
 ## 2026-09-03 — visual direction approved; batch A shipped (branch `docs/12-visual-direction`, issue #12)
 
 **Goal:** record the developer's approval (2026-09-03) of the direction explored at `docs/mock/visible-grid/index.html` and ship its artifacts so spec §6 stops gating visual work.
