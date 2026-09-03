@@ -95,12 +95,54 @@ OriginStory
 | `docs/openclink-analysis.md`, `docs/openclink-present-blog-brief.md` | เนื้อหา `/ecosystem/openclink` ทั้งหน้า |
 | `docs/clone-space-analysis.md`, `docs/clone-space-present-blog-brief.md` | เนื้อหา `/ecosystem/clone-space` ทั้งหน้า |
 
-## 6. Brand/visual direction
+## 6. Brand/visual direction (revised 2026-09-03)
 
-ใช้แนวทางเดียวกับ `docs/xeno-skills-present-blog-brief.md` §14 ทั้งเว็บ (ไม่ใช่แค่หน้า
-xeno-skills): text-first, neutral base + accent เดียว, ไม่ใช้ AI gradient/glassmorphism,
-แสดง dissent/limitation ตรง ๆ แทนภาพว่าทุกอย่างสมบูรณ์แบบ — ใช้กับหน้า `/ecosystem/*` ด้วย
-เพื่อให้ทั้งเว็บอ่านเป็นระบบเดียวกัน ไม่ใช่ 3 สไตล์ต่างกัน
+> **สถานะ: approved 2026-09-03 (developer sign-off)** เวอร์ชันก่อนของ section นี้
+> (ตัดสินใจ 2026-09-02: direction “Swiss Signal” accent แดง + hero แถบดำ, body layout
+> “Quiet Ledger” ดัชนีซ้าย sticky, และ Visible Grid) **ถูกแทนที่ 2026-09-03** — หลัง
+> developer ดู mock รอบใหม่ redirect มาทาง direction ใหม่ที่ explore อยู่จริงที่
+> `docs/mock/visible-grid/index.html` (ชื่อ directory เป็น misnomer — rename ตอน
+> direction เด็ดขาด) เนื้อเต็มของเวอร์ชันก่อนดูได้จาก git history และ mock เก่ายังอยู่ครบ
+> (`docs/mock/Fable 5.1/index.html`, `docs/mock/Luna/index.html`)
+
+**Direction ที่กำลัง explore: Editorial Minimalism × Modern Swiss × Liquid Glass — เป็น 3 ส่วน**
+(Visible Grid ถูกตัดรอบนี้: ไม่มีเส้น column, ไม่มีไม้บรรทัด `01–12`, ไม่มี registration marks,
+ไม่มีปุ่ม GRID / คีย์ `G` — revisit ภายหลัง sign-off)
+
+- palette light: paper `#f3f2ec` · ink `#131310` · accent เดียว ultramarine `#2233c9`;
+  dark theme: paper `#0d0d10` · ink `#eceada` · accent `#8f9bff` (contrast วัดจริงแล้ว —
+  text เล็กทุกสี ≥4.5:1 ยกเว้น `--faint` light ที่ต้องรับค่าเดียวกับ `--muted` เพราะ paper นี้
+  ไม่มีแถบ AA ระหว่างสองสี — วัดแล้ว `#74726b` = 4.29 fail)
+- font: display/body Latin = Archivo (width axis บีบแคบเฉพาะ headline), **ไทย = Bai Jamjuree**
+  (+ line-height display เพิ่มสำหรับ diacritics ที่ซ้อน), mono = JetBrains Mono สำหรับ
+  label/annotation เท่านั้น
+- **ภาษา: ไทยเป็นภาษาหลัก + ปุ่มสลับ TH | EN** (persist `localStorage`, update
+  `html[lang]`); identifier / command / skill slug คงอังกฤษ byte-exact เสมอ
+- **theme: light/dark** — default ตาม `prefers-color-scheme`, สลับด้วยปุ่ม persist
+- Liquid Glass ใช้เป็น *ชั้นเครื่องมือที่ลอยเหนือหน้ากระดาษ* เท่านั้น (sticky nav,
+  origin-story popup, card เดียว) — ห้ามเป็นพื้นหลัง section, ห้ามซ้อน glass บน glass,
+  ห้าม blob/orb/3D; สูตรเดียว `backdrop-filter: blur(≈22px) saturate(170%)` + fallback
+  อ่านได้เมื่อไม่รองรับ (ข้อยกเว้น glassmorphism จาก brief §14 ยังคงใช้ตามนี้)
+- mono annotation (slug, src lines, tag) เป็นอังกฤษเสมอ — อ่านเป็น code ไม่ใช่ prose
+
+หลักที่ยังคงจาก brief §14 (ไม่เปลี่ยน): text-first, neutral base + accent เดียว, contrast สูง,
+whitespace สื่อความมั่นใจ, แสดง dissent/limitation ตรง ๆ แทนภาพว่าทุกอย่างสมบูรณ์แบบ,
+ไม่ใช้ AI gradient ม่วง/ฟ้า, ไม่ใช้ card grid สามคอลัมน์แบบ SaaS, ไม่มี claim ที่ไม่มี source
+
+Micro-rules ที่ต้องคงไว้ (จาก `design-rules` / `design-audit`): type scale Major Third 1.25
+จาก 16px ยกเว้น hero title เป็น display exception; spacing ลง 8pt; contrast ≥4.5:1 สำหรับ
+text เล็ก (ค่าที่วัดจริงอยู่ในรายการบน); ปุ่มทุกปุ่มมี default / hover / active (+disabled
+เมื่อใช้) states; **OG title / description / image ยังต้องทำก่อน deploy** (ตรวจ 2026-09-03 —
+site ปัจจุบันยังไม่มี); ข้อมูลเกิน 4 รายการ chunk เป็นกลุ่ม
+
+Motion: quiet reveal ตอน scroll + hover lift เท่านั้น เคารพ `prefers-reduced-motion`
+(รายละเอียด animation popup/diagram อยู่นอกขอบเขตตาม §10; motion pass ทั้งก้อนยัง open
+— ดู ledger)
+
+**สิ่งที่ถูกแทนที่ (ไม่บังคับใช้อีกต่อไป):** Swiss red accent `#e63312`, hero แถบดำ,
+ไม้บรรทัดคอลัมน์สีแดง, Visible Grid (เส้น + ปุ่ม GRID / คีย์ `G`), ดัชนีซ้าย sticky
+(“Quiet Ledger”), และ hard-decision record ของ Phase 1–3 รอบนั้น (เก็บตรงนี้เป็น record เดียว —
+mock เก่าใน `docs/mock/` ยังเป็น reference)
 
 ## 7. ความถูกต้องที่ต้องระวังเป็นพิเศษ (สรุปจาก 3 research doc)
 

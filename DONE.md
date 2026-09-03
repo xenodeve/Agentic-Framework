@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-09-03 — visual direction approved; batch A shipped (branch `docs/12-visual-direction`, issue #12)
+
+**Goal:** record the developer's approval (2026-09-03) of the direction explored at `docs/mock/visible-grid/index.html` and ship its artifacts so spec §6 stops gating visual work.
+
+**Shipped:**
+- spec §6 rewrite marked `approved` (Editorial Minimalism × Modern Swiss × Liquid Glass; ultramarine accent; Archivo + Bai Jamjuree, TH-primary with EN toggle; light/dark; Visible Grid cut for this round)
+- `CLAUDE.md` — the "pending final developer sign-off" sentence → approved; batch A is no longer gated
+- `docs/mock/` committed — `visible-grid/index.html` (the explored artifact) + older `Fable 5.1/`, `Luna/` mocks as reference
+- ledger: the visual-direction row reconciled to ✅ (follow-up = implement the direction on the site)
+- **Excluded:** untracked `DESIGN.md` left out on purpose — it describes a different project ("T4 Labs"), contradicts the approved direction (Visible Grid as signature, orange accent `#E8461B`), and its references (`../Requirement.MD`, `docs/design/expensive-minimalism.md`) are dead in this repo; it stays untracked for a developer decision
+
+**Validation:** docs-only diff — `bun run verify` green on the branch (re-run for the gate ledger).
+
+---
+
 ## 2026-09-03 — TH-primary site i18n: Thai default + TH|EN toggle (branch `feat/10-th-en-i18n`, issue #10)
 
 **Goal:** the production site becomes **Thai by default with a TH | EN toggle** in the header — no reload, choice persisted across visits (`af-lang`), `<html lang>` synced — per spec §6 direction (2026-09-03) as prototyped in `docs/mock/visible-grid/index.html`.
@@ -19,7 +34,7 @@
 
 **Validation:** `bun test` 29/0; `bun run verify` green (lint + typecheck + build). Production serve + curl: `/`, `/blog`, `/blog/the-agentic-framework`, `/ecosystem/{openclink,clone-space}` → `lang="th"` with Thai bodies/titles in the SSG HTML; JS payload carries both languages + `af-lang`; `/ecosystem` still 308 → `/#built-on`; build table shows no `.th` routes.
 
-**Not yet:** push/PR (developer decision — no CI backstop, so the author-verify claim travels with the push); final visual confirmation of the in-page toggle is the developer's (no headless browser in this environment, per issue #10 acceptance #4).
+**Shipped:** pushed + merged into `main` as squash `8d429a0` (PR #11) on 2026-09-03; the author-verify claim travels with the merge (no CI backstop). Still open for the developer: final visual confirmation of the in-page toggle (no headless browser in this environment, per issue #10 acceptance #4).
 
 ---
 
